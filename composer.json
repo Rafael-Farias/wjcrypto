@@ -1,0 +1,22 @@
+{
+  "authors": [
+    {
+      "name": "Rafael Farias",
+      "email": "rafael.farias@webjump.com.br"
+    }
+  ],
+  "require": {
+    "monolog/monolog": "^2.3",
+    "nyholm/psr7": "^1.4",
+    "nyholm/psr7-server": "^1.0",
+    "pecee/simple-router": "4.3.7.2",
+    "egulias/email-validator": "^3.1",
+    "ext-pdo": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "WjCrypto\\": ""
+    }
+  }
+}
