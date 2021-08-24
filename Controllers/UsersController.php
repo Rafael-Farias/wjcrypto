@@ -29,10 +29,26 @@ class UsersController
 
     public function showUser(int $userId): void
     {
-        var_dump($userId);
-        die();
         $userService = new UserService();
-        $getUserResult = $userService->getUser();
+        $validationReturn = $userService->validateUserId($userId);
+        if ($validationReturn !== null) {
+            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
+        }
+
+        $getUserResult = $userService->getUser($userId);
+        $this->sendJsonResponse($getUserResult['message'], $getUserResult['httpResponseCode']);
+    }
+
+    public function deleteUser(int $userId): void
+    {
+        $userService = new UserService();
+        $validationReturn = $userService->validateUserId($userId);
+        if ($validationReturn !== null) {
+            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
+        }
+
+        $deleteUserResult = $userService->deleteUser($userId);
+        $this->sendJsonResponse($deleteUserResult['message'], $deleteUserResult['httpResponseCode']);
     }
 
     private function sendJsonResponse(array $dataArray, int $httpResponseCode): void

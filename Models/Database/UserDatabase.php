@@ -72,9 +72,26 @@ class UserDatabase extends Database
         try {
             $sqlQuery = "SELECT `id`,`email`,`creation_timestamp`,`update_timestamp` FROM users WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $userId, PDO::PARAM_INT);
             if ($statement->execute()) {
                 $statement->setFetchMode(PDO::FETCH_CLASS, User::class);
                 return $statement->fetch();
+            }
+            $errorArray = $statement->errorInfo();
+            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+        }
+    }
+
+    public function delete(int $userId)
+    {
+        try {
+            $sqlQuery = "DELETE FROM users WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $userId, PDO::PARAM_INT);
+            if ($statement->execute()) {
+                return true;
             }
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];

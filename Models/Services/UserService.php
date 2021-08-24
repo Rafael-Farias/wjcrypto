@@ -69,11 +69,45 @@ class UserService
         return $this->returnResponseArray($usersJsonArray, 200);
     }
 
-    public function getUser()
+    public function getUser(int $userId): array
     {
-        input('id');
         $userDatabase = new UserDatabase();
-        $user = $userDatabase->selectById();
+        $selectUserByIdResult = $userDatabase->selectById($userId);
+        if (is_string($selectUserByIdResult)) {
+            return $this->returnResponseArray($selectUserByIdResult, 400);
+        }
+        if (is_bool($selectUserByIdResult)) {
+            $errorMessage = 'Failed to retrieve the user with ID ' . $userId . ' from the database.';
+            return $this->returnResponseArray($errorMessage, 400);
+        }
+        $userData = $selectUserByIdResult->getUserData();
+        return $this->returnResponseArray($userData, 200);
+    }
+
+    public function validateUserId(int $userId): ?array
+    {
+        $userDatabase = new UserDatabase();
+        $usersArray = $userDatabase->selectAll();
+        foreach ($usersArray as $user) {
+            if ($user->getId() === $userId) {
+                return null;
+            }
+        }
+        $errorMessage = 'Error! The User ID ' . $userId . ' does not exist in the database.';
+        return $this->returnResponseArray($errorMessage, 400);
+    }
+
+    public function deleteUser(int $userId): array
+    {
+        $userDatabase = new UserDatabase();
+
+        $deleteResult = $userDatabase->delete($userId);
+        if (is_string($deleteResult)) {
+            return $this->returnResponseArray($deleteResult, 400);
+        }
+
+        $message = 'User deleted successfully!';
+        return $this->returnResponseArray($message, 200);
     }
 
     private function returnResponseArray($message, int $httpResponseCode): array
