@@ -7,6 +7,7 @@ use Egulias\EmailValidator\Validation\DNSCheckValidation;
 use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
 use Egulias\EmailValidator\Validation\RFCValidation;
 use WjCrypto\Models\Database\UserDatabase;
+use WjCrypto\Models\Entities\User;
 
 class UserService
 {
@@ -28,7 +29,7 @@ class UserService
         return $this->returnResponseArray($message, 201);
     }
 
-    public function validateNewUserData(): ?array
+    public function validateUserData(): ?array
     {
         $requiredFields = ['email', 'password'];
         if (input()->exists($requiredFields) === false) {
@@ -81,7 +82,7 @@ class UserService
             return $this->returnResponseArray($errorMessage, 400);
         }
         $userData = $selectUserByIdResult->getUserData();
-        return $this->returnResponseArray($userData, 200);
+        return $this->returnResponseArray($selectUserByIdResult, 200);
     }
 
     public function validateUserId(int $userId): ?array
@@ -110,6 +111,24 @@ class UserService
         return $this->returnResponseArray($message, 200);
     }
 
+    public function updateUser(int $userId): array
+    {
+        $newUserData = input()->all();
+
+        $email = $newUserData['email'];
+        $hashOptions = [
+            'cost' => 15
+        ];
+        $hash = password_hash($newUserData['password'], PASSWORD_DEFAULT, $hashOptions);
+        $userDatabase = new UserDatabase();
+        $insertResult = $userDatabase->update($email, $hash, $userId);
+        if (is_string($insertResult)) {
+            return $this->returnResponseArray($insertResult, 500);
+        }
+        $message = 'User updated successfully!';
+        return $this->returnResponseArray($message, 201);
+    }
+
     private function returnResponseArray($message, int $httpResponseCode): array
     {
         if (is_string($message)) {
@@ -123,6 +142,44 @@ class UserService
             'message' => $message,
             'httpResponseCode' => $httpResponseCode
         ];
+    }
+
+    /**
+     * @return array|User
+     */
+    public function validateEmailAndPasswordThenMatchesPersistedUser()
+    {
+        $email = $_SERVER['PHP_AUTH_USER'];
+        $password = $_SERVER['PHP_AUTH_PW'];
+
+        if (is_null($password)) {
+            $errorMessage = 'Error! Invalid email or password.';
+            return $this->returnResponseArray($errorMessage, 400);
+        }
+
+        $validator = new EmailValidator();
+        $multipleValidations = new MultipleValidationWithAnd([
+                                                                 new RFCValidation(),
+                                                                 new DNSCheckValidation()
+                                                             ]);
+
+        if ($validator->isValid($email, $multipleValidations) === false) {
+            $errorMessage = 'Error! Invalid email or password.';
+            return $this->returnResponseArray($errorMessage, 400);
+        }
+
+        $userDatabase = new UserDatabase();
+        $usersArray = $userDatabase->selectAll();
+        foreach ($usersArray as $user) {
+            if ($user->getEmail() === $email) {
+                $isPasswordCorrect = password_verify($password, $user->getPassword());
+                if ($isPasswordCorrect) {
+                    return $user;
+                }
+            }
+        }
+        $errorMessage = 'Error! The email ' . $email . ' is already in use.';
+        return $this->returnResponseArray($errorMessage, 400);
     }
 
 }
