@@ -2,11 +2,12 @@
 
 namespace WjCrypto\Models\Entities;
 
-class User
+class AccountNumber
 {
     private int $id;
-    private string $email;
-    private string $password;
+    private int $userId;
+    private int $naturalPersonAccountId;
+    private int $legalPersonAccountId;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -27,35 +28,51 @@ class User
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getEmail(): string
+    public function getUserId(): int
     {
-        return $this->email;
+        return $this->userId;
     }
 
     /**
-     * @param string $email
+     * @param int $userId
      */
-    public function setEmail(string $email): void
+    public function setUserId(int $userId): void
     {
-        $this->email = $email;
+        $this->userId = $userId;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getPassword(): string
+    public function getNaturalPersonAccountId(): int
     {
-        return $this->password;
+        return $this->naturalPersonAccountId;
     }
 
     /**
-     * @param string $password
+     * @param int $naturalPersonAccountId
      */
-    public function setPassword(string $password): void
+    public function setNaturalPersonAccountId(int $naturalPersonAccountId): void
     {
-        $this->password = $password;
+        $this->naturalPersonAccountId = $naturalPersonAccountId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLegalPersonAccountId(): int
+    {
+        return $this->legalPersonAccountId;
+    }
+
+    /**
+     * @param int $legalPersonAccountId
+     */
+    public function setLegalPersonAccountId(int $legalPersonAccountId): void
+    {
+        $this->legalPersonAccountId = $legalPersonAccountId;
     }
 
     /**
@@ -89,18 +106,4 @@ class User
     {
         $this->update_timestamp = $update_timestamp;
     }
-
-    /**
-     * @return array
-     */
-    public function getUserData(): array
-    {
-        return [
-            'id' => $this->id,
-            'email' => $this->email,
-            'creation_timestamp' => $this->creation_timestamp,
-            'update_timestamp' => $this->update_timestamp
-        ];
-    }
-
 }

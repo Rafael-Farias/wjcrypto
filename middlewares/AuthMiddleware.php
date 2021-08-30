@@ -151,4 +151,35 @@ class AuthMiddleware implements IMiddleware
         }
         return $decodedJwt;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getUserId()
+    {
+        $authorizationHeader = \request()->getHeader('Authorization');
+        $bearerTokenRegex = '/Bearer\s(\S+)/';
+        $matches = [];
+        $bearerTokenRegexMatchResult = preg_match($bearerTokenRegex, $authorizationHeader, $matches);
+        if ($bearerTokenRegexMatchResult === false) {
+            $response = [
+                'message' => 'Error! The system could not process the Authorization header.'
+            ];
+            $this->sendJsonResponse($response, 500);
+        }
+        $token = $this->decodeJwt($matches[1]);
+        $now = new DateTimeImmutable();
+
+        if ($token->iss !== $this->serverName ||
+            $token->nbf > $now->getTimestamp() ||
+            $token->exp < $now->getTimestamp()) {
+            response()->header('HTTP/1.1 401 Unauthorized');
+            $response = [
+                'message' => 'Error! Invalid Token.'
+            ];
+            $this->sendJsonResponse($response, 401);
+        }
+
+        return $token->id;
+    }
 }

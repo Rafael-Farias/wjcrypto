@@ -7,7 +7,7 @@ use WjCrypto\Models\Entities\User;
 
 class UserDatabase extends Database
 {
-    private $connection = null;
+    private PDO $connection;
 
     public function __construct()
     {
@@ -80,7 +80,7 @@ class UserDatabase extends Database
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
         }
     }
 
@@ -100,7 +100,7 @@ class UserDatabase extends Database
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
         }
     }
 
@@ -118,7 +118,7 @@ class UserDatabase extends Database
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\insert: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\update: ' . $exception->getMessage();
         }
     }
 

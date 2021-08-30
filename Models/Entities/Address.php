@@ -2,11 +2,12 @@
 
 namespace WjCrypto\Models\Entities;
 
-class User
+class Address
 {
     private int $id;
-    private string $email;
-    private string $password;
+    private string $address;
+    private string $complement;
+    private int $cityId;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -29,33 +30,49 @@ class User
     /**
      * @return string
      */
-    public function getEmail(): string
+    public function getAddress(): string
     {
-        return $this->email;
+        return $this->address;
     }
 
     /**
-     * @param string $email
+     * @param string $address
      */
-    public function setEmail(string $email): void
+    public function setAddress(string $address): void
     {
-        $this->email = $email;
+        $this->address = $address;
     }
 
     /**
      * @return string
      */
-    public function getPassword(): string
+    public function getComplement(): string
     {
-        return $this->password;
+        return $this->complement;
     }
 
     /**
-     * @param string $password
+     * @param string $complement
      */
-    public function setPassword(string $password): void
+    public function setComplement(string $complement): void
     {
-        $this->password = $password;
+        $this->complement = $complement;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCityId(): int
+    {
+        return $this->cityId;
+    }
+
+    /**
+     * @param int $cityId
+     */
+    public function setCityId(int $cityId): void
+    {
+        $this->cityId = $cityId;
     }
 
     /**
@@ -89,18 +106,4 @@ class User
     {
         $this->update_timestamp = $update_timestamp;
     }
-
-    /**
-     * @return array
-     */
-    public function getUserData(): array
-    {
-        return [
-            'id' => $this->id,
-            'email' => $this->email,
-            'creation_timestamp' => $this->creation_timestamp,
-            'update_timestamp' => $this->update_timestamp
-        ];
-    }
-
 }

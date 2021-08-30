@@ -2,11 +2,12 @@
 
 namespace WjCrypto\Models\Entities;
 
-class User
+class ClientContact
 {
     private int $id;
-    private string $email;
-    private string $password;
+    private int $legalPersonAccountId;
+    private int $naturalPersonAccountId;
+    private string $telephone;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -27,35 +28,51 @@ class User
     }
 
     /**
+     * @return int
+     */
+    public function getLegalPersonAccountId(): int
+    {
+        return $this->legalPersonAccountId;
+    }
+
+    /**
+     * @param int $legalPersonAccountId
+     */
+    public function setLegalPersonAccountId(int $legalPersonAccountId): void
+    {
+        $this->legalPersonAccountId = $legalPersonAccountId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getNaturalPersonAccountId(): int
+    {
+        return $this->naturalPersonAccountId;
+    }
+
+    /**
+     * @param int $naturalPersonAccountId
+     */
+    public function setNaturalPersonAccountId(int $naturalPersonAccountId): void
+    {
+        $this->naturalPersonAccountId = $naturalPersonAccountId;
+    }
+
+    /**
      * @return string
      */
-    public function getEmail(): string
+    public function getTelephone(): string
     {
-        return $this->email;
+        return $this->telephone;
     }
 
     /**
-     * @param string $email
+     * @param string $telephone
      */
-    public function setEmail(string $email): void
+    public function setTelephone(string $telephone): void
     {
-        $this->email = $email;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param string $password
-     */
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
+        $this->telephone = $telephone;
     }
 
     /**
@@ -89,18 +106,4 @@ class User
     {
         $this->update_timestamp = $update_timestamp;
     }
-
-    /**
-     * @return array
-     */
-    public function getUserData(): array
-    {
-        return [
-            'id' => $this->id,
-            'email' => $this->email,
-            'creation_timestamp' => $this->creation_timestamp,
-            'update_timestamp' => $this->update_timestamp
-        ];
-    }
-
 }

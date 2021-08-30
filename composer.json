@@ -11,7 +11,10 @@
     "egulias/email-validator": "^3.1",
     "ext-pdo": "*",
     "ext-json": "*",
-    "firebase/php-jwt": "^5.4"
+    "firebase/php-jwt": "^5.4",
+    "bissolli/validador-cpf-cnpj": "^1.2",
+    "thiagocfn/inscricaoestadual": "^1.1",
+    "codeinc/strip-accents": "^1.1"
   },
   "autoload": {
     "psr-4": {

@@ -81,7 +81,6 @@ class UserService
             $errorMessage = 'Failed to retrieve the user with ID ' . $userId . ' from the database.';
             return $this->returnResponseArray($errorMessage, 400);
         }
-        $userData = $selectUserByIdResult->getUserData();
         return $this->returnResponseArray($selectUserByIdResult, 200);
     }
 

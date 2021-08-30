@@ -2,11 +2,11 @@
 
 namespace WjCrypto\Models\Entities;
 
-class User
+class City
 {
     private int $id;
-    private string $email;
-    private string $password;
+    private string $name;
+    private int $stateId;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -29,33 +29,33 @@ class User
     /**
      * @return string
      */
-    public function getEmail(): string
+    public function getName(): string
     {
-        return $this->email;
+        return $this->name;
     }
 
     /**
-     * @param string $email
+     * @param string $name
      */
-    public function setEmail(string $email): void
+    public function setName(string $name): void
     {
-        $this->email = $email;
+        $this->name = $name;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getPassword(): string
+    public function getStateId(): int
     {
-        return $this->password;
+        return $this->stateId;
     }
 
     /**
-     * @param string $password
+     * @param int $stateId
      */
-    public function setPassword(string $password): void
+    public function setStateId(int $stateId): void
     {
-        $this->password = $password;
+        $this->stateId = $stateId;
     }
 
     /**
@@ -88,19 +88,6 @@ class User
     public function setUpdateTimestamp(string $update_timestamp): void
     {
         $this->update_timestamp = $update_timestamp;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUserData(): array
-    {
-        return [
-            'id' => $this->id,
-            'email' => $this->email,
-            'creation_timestamp' => $this->creation_timestamp,
-            'update_timestamp' => $this->update_timestamp
-        ];
     }
 
 }
