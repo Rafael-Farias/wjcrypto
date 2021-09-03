@@ -1,6 +1,6 @@
 <?php
 
-namespace WjCrypto\middlewares;
+namespace WjCrypto\Middlewares;
 
 use DateTimeImmutable;
 use Firebase\JWT\BeforeValidException;
@@ -9,11 +9,13 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\SignatureInvalidException;
 use Pecee\Http\Middleware\IMiddleware;
 use Pecee\Http\Request;
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Models\Entities\User;
 use WjCrypto\Models\Services\UserService;
 
 class AuthMiddleware implements IMiddleware
 {
+    use JsonResponse;
 
     private $secretKey = 'ifvDVbqb8g0/Umxz2M2oz.bWa/s8n08gB8kL9qXq8OA5reIEzoRAK';
     private $serverName = 'localhost';
@@ -95,12 +97,6 @@ class AuthMiddleware implements IMiddleware
                 $this->sendJsonResponse($response, 401);
                 break;
         }
-    }
-
-    private function sendJsonResponse(array $dataArray, int $httpResponseCode): void
-    {
-        response()->httpCode($httpResponseCode);
-        response()->json($dataArray);
     }
 
     private function encodeJwt(User $user): array

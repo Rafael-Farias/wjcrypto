@@ -2,10 +2,12 @@
 
 namespace WjCrypto\Controllers;
 
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Models\Services\UserService;
 
 class UsersController
 {
+    use JsonResponse;
 
     public function create(): void
     {
@@ -67,10 +69,5 @@ class UsersController
         $this->sendJsonResponse($updateResult['message'], $updateResult['httpResponseCode']);
     }
 
-    private function sendJsonResponse(array $dataArray, int $httpResponseCode): void
-    {
-        response()->httpCode($httpResponseCode);
-        response()->json($dataArray);
-    }
 
 }

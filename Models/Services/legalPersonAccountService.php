@@ -2,18 +2,20 @@
 
 namespace WjCrypto\Models\Services;
 
-use Bissolli\ValidadorCpfCnpj\CPF;
-use CodeInc\StripAccents\StripAccents;
+use Bissolli\ValidadorCpfCnpj\CNPJ;
+use Thiagocfn\InscricaoEstadual\Util\Validador;
 use WjCrypto\Helpers\ResponseArray;
+use WjCrypto\Helpers\SanitizeString;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
+use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\ClientContactDatabase;
-use WjCrypto\Models\Database\NaturalPersonAccountDatabase;
+use WjCrypto\Models\Database\LegalPersonAccountDatabase;
+use WjCrypto\Models\Database\StateDatabase;
 
-
-class NaturalPersonAccountService
+class legalPersonAccountService
 {
-    use ResponseArray;
+    use ResponseArray, SanitizeString;
 
     public function createAccount()
     {
@@ -29,30 +31,29 @@ class NaturalPersonAccountService
             $newAccountData['address'],
             $newAccountData['addressComplement']
         );
-        $birthDate = \DateTime::createFromFormat('d/m/Y', $newAccountData['birthDate']);
-
-        $naturalPersonAccountDatabase = new NaturalPersonAccountDatabase();
-        $persistNaturalPersonAccountResult = $naturalPersonAccountDatabase->insert(
+        $foundationDate = \DateTime::createFromFormat('d/m/Y', $newAccountData['foundationDate']);
+        $legalPersonAccountDatabase = new legalPersonAccountDatabase();
+        $persistLegalPersonAccountResult = $legalPersonAccountDatabase->insert(
             $newAccountData['name'],
-            $newAccountData['cpf'],
-            $newAccountData['rg'],
-            $birthDate->format('Y/m/d'),
+            $newAccountData['cnpj'],
+            $newAccountData['companyRegister'],
+            $foundationDate->format('Y/m/d'),
             0,
             $address->getId()
         );
 
-        if (is_string($persistNaturalPersonAccountResult)) {
-            return $this->generateResponseArray($persistNaturalPersonAccountResult, 500);
+        if (is_string($persistLegalPersonAccountResult)) {
+            return $this->generateResponseArray($persistLegalPersonAccountResult, 500);
         }
 
-        $selectAccountByCpfResult = $naturalPersonAccountDatabase->selectByCpf($newAccountData['cpf']);
-        if (is_string($selectAccountByCpfResult)) {
-            return $this->generateResponseArray($selectAccountByCpfResult, 500);
+        $selectAccountByCnpjResult = $legalPersonAccountDatabase->selectByCnpj($newAccountData['cnpj']);
+        if (is_string($selectAccountByCnpjResult)) {
+            return $this->generateResponseArray($selectAccountByCnpjResult, 500);
         }
 
         $clientContactDatabase = new ClientContactDatabase();
         foreach ($newAccountData['contacts'] as $contact) {
-            $persistContactResult = $clientContactDatabase->insert($contact, null, $selectAccountByCpfResult->getId());
+            $persistContactResult = $clientContactDatabase->insert($contact, $selectAccountByCnpjResult->getId(), null);
             if (is_string($persistContactResult)) {
                 return $this->generateResponseArray($persistContactResult, 500);
             }
@@ -67,8 +68,8 @@ class NaturalPersonAccountService
         $accountNumberInsertResult = $accountNumberDatabase->insert(
             $userId,
             $accountNumber,
-            null,
-            $selectAccountByCpfResult->getId()
+            $selectAccountByCnpjResult->getId(),
+            null
         );
         if (is_string($accountNumberInsertResult)) {
             return $this->generateResponseArray($accountNumberInsertResult, 500);
@@ -82,9 +83,9 @@ class NaturalPersonAccountService
     {
         $requiredFields = [
             'name',
-            'cpf',
-            'rg',
-            'birthDate',
+            'cnpj',
+            'companyRegister',
+            'foundationDate',
             'address',
             'addressComplement',
             'contacts',
@@ -108,24 +109,24 @@ class NaturalPersonAccountService
             }
         }
 
-        $cpfValidator = new CPF($newAccountData['cpf']);
-        if ($cpfValidator->isValid() === false) {
-            $message = 'Error! Please enter a valid CPF.';
+        $cnpjValidator = new CNPJ($newAccountData['cnpj']);
+        if ($cnpjValidator->isValid() === false) {
+            $message = 'Error! Please enter a valid CNPJ.';
             return $this->generateResponseArray($message, 400);
         }
 
         $dateRegex = '/^(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/([0-9]{4})$/';
         $matches = [];
 
-        $pregMatchResult = preg_match($dateRegex, $newAccountData['birthDate'], $matches[]);
+        $pregMatchResult = preg_match($dateRegex, $newAccountData['foundationDate'], $matches[]);
         if ($pregMatchResult !== 1) {
-            $message = 'Error! Invalid birth date format. Please enter a date with the following pattern: DD/MM/YYYY';
+            $message = 'Error! Invalid foundation date format. Please enter a date with the following pattern: DD/MM/YYYY';
             return $this->generateResponseArray($message, 400);
         }
 
         $checkDateResult = checkdate($matches[0][2], $matches[0][1], $matches[0][3]);
         if ($checkDateResult === false) {
-            $message = 'Error! Invalid date format. Please enter a valid date.';
+            $message = 'Error! Invalid date. Please enter a valid date.';
             return $this->generateResponseArray($message, 400);
         }
 
@@ -137,15 +138,52 @@ class NaturalPersonAccountService
                 return $this->generateResponseArray($message, 400);
             }
         }
+
+        $newAccountData['state'] = $this->sanitizeString($newAccountData['state']);
+        $stateDatabase = new StateDatabase();
+        $selectAllStatesResult = $stateDatabase->selectAll();
+        foreach ($selectAllStatesResult as $state) {
+            $sanitizedStateName = $this->sanitizeString($state->getName());
+            if ($sanitizedStateName === $newAccountData['state']) {
+                $newAccountData['stateInitials'] = $state->getInitials();
+                $newAccountData['stateId'] = $state->getId();
+            }
+        }
+        if (array_key_exists('stateInitials', $newAccountData) === false) {
+            $message = 'Error! Invalid state. Please enter a valid state.';
+            return $this->generateResponseArray($message, 400);
+        }
+        $companyRegisterValidationResult = Validador::check(
+            $newAccountData['stateInitials'],
+            $newAccountData['companyRegister']
+        );
+        if ($companyRegisterValidationResult === false) {
+            $message = 'Error! Invalid company register. Please enter a valid company register.';
+            return $this->generateResponseArray($message, 400);
+        }
+        $newAccountData['city'] = $this->sanitizeString($newAccountData['city']);
+        $cityDatabase = new CityDatabase();
+        $citiesByStateId = $cityDatabase->selectAllByState($newAccountData['stateId']);
+        $foundCity = false;
+        foreach ($citiesByStateId as $city) {
+            $sanitizedCityName = $this->sanitizeString($city->getName());
+            if ($sanitizedCityName === $newAccountData['city']) {
+                $foundCity = true;
+            }
+        }
+        if ($foundCity === false) {
+            $message = 'Error! Invalid city. Please enter a valid city.';
+            return $this->generateResponseArray($message, 400);
+        }
         return null;
     }
 
     private function generateAccountNumber(string $userId)
     {
-        $naturalPersonIdentifier = '01';
+        $legalPersonIdentifier = '02';
         $accountNumberDatabase = new AccountNumberDatabase();
         $allAccounts = $accountNumberDatabase->selectAll();
         $counter = count($allAccounts);
-        return $naturalPersonIdentifier . $userId . $counter;
+        return $legalPersonIdentifier . $userId . $counter;
     }
 }

@@ -2,8 +2,9 @@
 
 use Pecee\SimpleRouter\SimpleRouter;
 use WjCrypto\Controllers\AccountController;
+use WjCrypto\Controllers\TransactionsController;
 use WjCrypto\Controllers\UsersController;
-use WjCrypto\middlewares\AuthMiddleware;
+use WjCrypto\Middlewares\AuthMiddleware;
 
 SimpleRouter::post('/user', [UsersController::class, 'create']);
 SimpleRouter::group(['middleware' => AuthMiddleware::class], function () {
@@ -14,5 +15,11 @@ SimpleRouter::group(['middleware' => AuthMiddleware::class], function () {
     SimpleRouter::post('/user/{id}', [UsersController::class, 'update']);
     SimpleRouter::group(['prefix' => '/natural-person'], function () {
         SimpleRouter::post('/create', [AccountController::class, 'createNaturalPersonAccount']);
+    });
+    SimpleRouter::group(['prefix' => '/legal-person'], function () {
+        SimpleRouter::post('/create', [AccountController::class, 'createLegalPersonAccount']);
+    });
+    SimpleRouter::group(['prefix' => '/transactions'], function () {
+        SimpleRouter::post('/deposit', [TransactionsController::class, 'deposit']);
     });
 });
