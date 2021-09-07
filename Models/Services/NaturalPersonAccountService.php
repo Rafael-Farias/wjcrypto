@@ -4,18 +4,23 @@ namespace WjCrypto\Models\Services;
 
 use Bissolli\ValidadorCpfCnpj\CPF;
 use CodeInc\StripAccents\StripAccents;
+use DI\Container;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
+use WjCrypto\Models\Database\AddressDatabase;
+use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\ClientContactDatabase;
 use WjCrypto\Models\Database\NaturalPersonAccountDatabase;
+use WjCrypto\Models\Database\StateDatabase;
+use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 
 class NaturalPersonAccountService
 {
     use ResponseArray;
 
-    public function createAccount()
+    public function createAccount(): array
     {
         $validationResult = $this->validateNewAccountData();
         if (is_array($validationResult)) {
@@ -52,7 +57,7 @@ class NaturalPersonAccountService
 
         $clientContactDatabase = new ClientContactDatabase();
         foreach ($newAccountData['contacts'] as $contact) {
-            $persistContactResult = $clientContactDatabase->insert($contact, null, $selectAccountByCpfResult->getId());
+            $persistContactResult = $clientContactDatabase->insert($contact, null, $selectAccountByCpfResult->id);
             if (is_string($persistContactResult)) {
                 return $this->generateResponseArray($persistContactResult, 500);
             }
@@ -68,7 +73,7 @@ class NaturalPersonAccountService
             $userId,
             $accountNumber,
             null,
-            $selectAccountByCpfResult->getId()
+            $selectAccountByCpfResult->id
         );
         if (is_string($accountNumberInsertResult)) {
             return $this->generateResponseArray($accountNumberInsertResult, 500);
@@ -147,5 +152,45 @@ class NaturalPersonAccountService
         $allAccounts = $accountNumberDatabase->selectAll();
         $counter = count($allAccounts);
         return $naturalPersonIdentifier . $userId . $counter;
+    }
+
+    public function generateNaturalPersonAccountObject(int $accountNumber)
+    {
+        $container = new Container();
+        $naturalPersonAccount = $container->get(NaturalPersonAccount::class);
+
+        $accountNumberDatabase = new AccountNumberDatabase();
+        $accountNumber = $accountNumberDatabase->selectByAccountNumber($accountNumber);
+
+        $naturalPersonAccount->setAccountNumber($accountNumber);
+
+        $naturalPersonAccountDatabase = new NaturalPersonAccountDatabase();
+        $returnedAccount = $naturalPersonAccountDatabase->selectById(
+            $naturalPersonAccount->getAccountNumber()->getNaturalPersonAccountId()
+        );
+
+        $naturalPersonAccount->setId($returnedAccount->id);
+        $naturalPersonAccount->setName($returnedAccount->name);
+        $naturalPersonAccount->setCpf($returnedAccount->cpf);
+        $naturalPersonAccount->setRg($returnedAccount->rg);
+        $naturalPersonAccount->setBirthDate($returnedAccount->birth_date);
+        $naturalPersonAccount->setBalance($returnedAccount->balance);
+        $naturalPersonAccount->setAddressId($returnedAccount->address_id);
+        $naturalPersonAccount->setCreationTimestamp($returnedAccount->creation_timestamp);
+        $naturalPersonAccount->setUpdateTimestamp($returnedAccount->update_timestamp);
+
+        $addressDatabase = new AddressDatabase();
+        $accountAddress = $addressDatabase->selectById($naturalPersonAccount->getAddressId());
+        $naturalPersonAccount->setAddress($accountAddress);
+
+        $cityDatabase = new CityDatabase();
+        $city = $cityDatabase->selectById($accountAddress->getCityId());
+        $naturalPersonAccount->setCity($city);
+
+        $stateDatabase = new StateDatabase();
+        $state = $stateDatabase->selectById($city->getStateId());
+        $naturalPersonAccount->setState($state);
+
+        return $naturalPersonAccount;
     }
 }

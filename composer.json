@@ -14,7 +14,8 @@
     "firebase/php-jwt": "^5.4",
     "bissolli/validador-cpf-cnpj": "^1.2",
     "thiagocfn/inscricaoestadual": "^1.1",
-    "codeinc/strip-accents": "^1.1"
+    "codeinc/strip-accents": "^1.1",
+    "php-di/php-di": "^6.3"
   },
   "autoload": {
     "psr-4": {

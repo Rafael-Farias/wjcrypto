@@ -58,4 +58,27 @@ class CityDatabase extends Database
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
         }
     }
+
+    /**
+     * @return City|string
+     */
+    public function selectById(int $id)
+    {
+        /**
+         * @var $city City
+         */
+        try {
+            $sqlQuery = "SELECT * FROM cities WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $id, PDO::PARAM_INT);
+            if ($statement->execute()) {
+                $statement->setFetchMode(PDO::FETCH_CLASS, City::class);
+                return $statement->fetch();
+            }
+            $errorArray = $statement->errorInfo();
+            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+        }
+    }
 }

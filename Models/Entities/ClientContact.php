@@ -5,8 +5,8 @@ namespace WjCrypto\Models\Entities;
 class ClientContact
 {
     private int $id;
-    private int $legalPersonAccountId;
-    private int $naturalPersonAccountId;
+    private int $legal_person_account_id;
+    private int $natural_person_account_id;
     private string $telephone;
     private string $creation_timestamp;
     private string $update_timestamp;
@@ -32,15 +32,15 @@ class ClientContact
      */
     public function getLegalPersonAccountId(): int
     {
-        return $this->legalPersonAccountId;
+        return $this->legal_person_account_id;
     }
 
     /**
-     * @param int $legalPersonAccountId
+     * @param int $legal_person_account_id
      */
-    public function setLegalPersonAccountId(int $legalPersonAccountId): void
+    public function setLegalPersonAccountId(int $legal_person_account_id): void
     {
-        $this->legalPersonAccountId = $legalPersonAccountId;
+        $this->legal_person_account_id = $legal_person_account_id;
     }
 
     /**
@@ -48,15 +48,15 @@ class ClientContact
      */
     public function getNaturalPersonAccountId(): int
     {
-        return $this->naturalPersonAccountId;
+        return $this->natural_person_account_id;
     }
 
     /**
-     * @param int $naturalPersonAccountId
+     * @param int $natural_person_account_id
      */
-    public function setNaturalPersonAccountId(int $naturalPersonAccountId): void
+    public function setNaturalPersonAccountId(int $natural_person_account_id): void
     {
-        $this->naturalPersonAccountId = $naturalPersonAccountId;
+        $this->natural_person_account_id = $natural_person_account_id;
     }
 
     /**

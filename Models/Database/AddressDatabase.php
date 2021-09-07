@@ -58,4 +58,25 @@ class AddressDatabase extends Database
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
         }
     }
+
+    /**
+     * @param int $id
+     * @return Address|string
+     */
+    public function selectById(int $id)
+    {
+        try {
+            $sqlQuery = "SELECT * FROM addresses WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $id, PDO::PARAM_INT);
+            if ($statement->execute()) {
+                $statement->setFetchMode(PDO::FETCH_CLASS, Address::class);
+                return $statement->fetch();
+            }
+            $errorArray = $statement->errorInfo();
+            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+        }
+    }
 }

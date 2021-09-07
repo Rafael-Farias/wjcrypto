@@ -3,7 +3,6 @@
 namespace WjCrypto\Models\Services;
 
 use WjCrypto\Helpers\ResponseArray;
-use WjCrypto\Models\Database\AccountNumberDatabase;
 
 class DepositService
 {
@@ -12,12 +11,22 @@ class DepositService
     public function makeDepositIntoAccount()
     {
         $inputedValues = input()->all();
+
+        $naturalPersonAccountService = new NaturalPersonAccountService();
+        $account = $naturalPersonAccountService->generateNaturalPersonAccountObject($inputedValues['accountNumber']);
+        var_dump($account);
+        die();
         $validationResult = $this->validateDepositData($inputedValues);
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        $accountDatabase = new AccountNumberDatabase();
-        $accountDatabase->selectAll();
+
+//        if ($accountToDeposit === false) {
+//            $message = 'Error! Invalid account number';
+//            return $this->generateResponseArray($message, 400);
+//        }
+
+//        var_dump($accountToDeposit);
     }
 
     private function validateDepositData(array $inputedValues): ?array

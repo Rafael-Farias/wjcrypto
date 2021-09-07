@@ -37,8 +37,29 @@ class NaturalPersonAccountDatabase extends Database
     }
 
     /**
+     * @param int $id
+     * @return \stdClass|string
+     */
+    public function selectById(int $id)
+    {
+        try {
+            $sqlQuery = "SELECT * FROM natural_person_accounts WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $id);
+            if ($statement->execute()) {
+                $statement->setFetchMode(PDO::FETCH_OBJ);
+                return $statement->fetch();
+            }
+            $errorArray = $statement->errorInfo();
+            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+        }
+    }
+
+    /**
      * @param string $cpf
-     * @return NaturalPersonAccount|string
+     * @return \stdClass|string
      */
     public function selectByCpf(string $cpf)
     {
@@ -47,7 +68,7 @@ class NaturalPersonAccountDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':cpf', $cpf);
             if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_CLASS, NaturalPersonAccount::class);
+                $statement->setFetchMode(PDO::FETCH_OBJ);
                 return $statement->fetch();
             }
             $errorArray = $statement->errorInfo();
