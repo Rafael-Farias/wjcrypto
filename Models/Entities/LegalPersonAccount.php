@@ -4,6 +4,16 @@ namespace WjCrypto\Models\Entities;
 
 class LegalPersonAccount
 {
+    private int $id;
+    private string $name;
+    private string $cnpj;
+    private string $company_register;
+    private string $foundation_date;
+    private float $balance;
+    private int $address_id;
+    private string $creation_timestamp;
+    private string $update_timestamp;
+
     /**
      * @return int
      */
@@ -57,15 +67,15 @@ class LegalPersonAccount
      */
     public function getCompanyRegister(): string
     {
-        return $this->companyRegister;
+        return $this->company_register;
     }
 
     /**
-     * @param string $companyRegister
+     * @param string $company_register
      */
-    public function setCompanyRegister(string $companyRegister): void
+    public function setCompanyRegister(string $company_register): void
     {
-        $this->companyRegister = $companyRegister;
+        $this->company_register = $company_register;
     }
 
     /**
@@ -73,15 +83,15 @@ class LegalPersonAccount
      */
     public function getFoundationDate(): string
     {
-        return $this->foundationDate;
+        return $this->foundation_date;
     }
 
     /**
-     * @param string $foundationDate
+     * @param string $foundation_date
      */
-    public function setFoundationDate(string $foundationDate): void
+    public function setFoundationDate(string $foundation_date): void
     {
-        $this->foundationDate = $foundationDate;
+        $this->foundation_date = $foundation_date;
     }
 
     /**
@@ -105,15 +115,15 @@ class LegalPersonAccount
      */
     public function getAddressId(): int
     {
-        return $this->addressId;
+        return $this->address_id;
     }
 
     /**
-     * @param int $addressId
+     * @param int $address_id
      */
-    public function setAddressId(int $addressId): void
+    public function setAddressId(int $address_id): void
     {
-        $this->addressId = $addressId;
+        $this->address_id = $address_id;
     }
 
     /**
@@ -148,13 +158,5 @@ class LegalPersonAccount
         $this->update_timestamp = $update_timestamp;
     }
 
-    private int $id;
-    private string $name;
-    private string $cnpj;
-    private string $companyRegister;
-    private string $foundationDate;
-    private float $balance;
-    private int $addressId;
-    private string $creation_timestamp;
-    private string $update_timestamp;
+
 }

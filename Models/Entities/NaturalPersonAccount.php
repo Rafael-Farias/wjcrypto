@@ -8,11 +8,30 @@ class NaturalPersonAccount
     private string $name;
     private string $cpf;
     private string $rg;
-    private string $birthDate;
+    private string $birth_date;
     private float $balance;
-    private int $addressId;
+    private int $address_id;
+    private Address $address;
+    private City $city;
+    private State $state;
+    private AccountNumber $accountNumber;
     private string $creation_timestamp;
     private string $update_timestamp;
+
+    /**
+     * @param Address $address
+     * @param City $city
+     * @param State $state
+     * @param AccountNumber $accountNumber
+     */
+    public function __construct(Address $address, City $city, State $state, AccountNumber $accountNumber)
+    {
+        $this->address = $address;
+        $this->city = $city;
+        $this->state = $state;
+        $this->accountNumber = $accountNumber;
+    }
+
 
     /**
      * @return int
@@ -83,15 +102,15 @@ class NaturalPersonAccount
      */
     public function getBirthDate(): string
     {
-        return $this->birthDate;
+        return $this->birth_date;
     }
 
     /**
-     * @param string $birthDate
+     * @param string $birth_date
      */
-    public function setBirthDate(string $birthDate): void
+    public function setBirthDate(string $birth_date): void
     {
-        $this->birthDate = $birthDate;
+        $this->birth_date = $birth_date;
     }
 
     /**
@@ -115,15 +134,15 @@ class NaturalPersonAccount
      */
     public function getAddressId(): int
     {
-        return $this->addressId;
+        return $this->address_id;
     }
 
     /**
-     * @param int $addressId
+     * @param int $address_id
      */
-    public function setAddressId(int $addressId): void
+    public function setAddressId(int $address_id): void
     {
-        $this->addressId = $addressId;
+        $this->address_id = $address_id;
     }
 
     /**
@@ -158,4 +177,67 @@ class NaturalPersonAccount
         $this->update_timestamp = $update_timestamp;
     }
 
+    /**
+     * @return Address
+     */
+    public function getAddress(): Address
+    {
+        return $this->address;
+    }
+
+    /**
+     * @param Address $address
+     */
+    public function setAddress(Address $address): void
+    {
+        $this->address = $address;
+    }
+
+    /**
+     * @return City
+     */
+    public function getCity(): City
+    {
+        return $this->city;
+    }
+
+    /**
+     * @param City $city
+     */
+    public function setCity(City $city): void
+    {
+        $this->city = $city;
+    }
+
+    /**
+     * @return State
+     */
+    public function getState(): State
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param State $state
+     */
+    public function setState(State $state): void
+    {
+        $this->state = $state;
+    }
+
+    /**
+     * @return AccountNumber
+     */
+    public function getAccountNumber(): AccountNumber
+    {
+        return $this->accountNumber;
+    }
+
+    /**
+     * @param AccountNumber $accountNumber
+     */
+    public function setAccountNumber(AccountNumber $accountNumber): void
+    {
+        $this->accountNumber = $accountNumber;
+    }
 }

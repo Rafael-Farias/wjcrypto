@@ -7,7 +7,7 @@ class Address
     private int $id;
     private string $address;
     private string $complement;
-    private int $cityId;
+    private int $city_id;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -64,15 +64,15 @@ class Address
      */
     public function getCityId(): int
     {
-        return $this->cityId;
+        return $this->city_id;
     }
 
     /**
-     * @param int $cityId
+     * @param int $city_id
      */
-    public function setCityId(int $cityId): void
+    public function setCityId(int $city_id): void
     {
-        $this->cityId = $cityId;
+        $this->city_id = $city_id;
     }
 
     /**

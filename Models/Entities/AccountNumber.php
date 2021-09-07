@@ -5,9 +5,10 @@ namespace WjCrypto\Models\Entities;
 class AccountNumber
 {
     private int $id;
-    private int $userId;
-    private int $naturalPersonAccountId;
-    private int $legalPersonAccountId;
+    private int $user_id;
+    private int $account_number;
+    private $natural_person_account_id;
+    private $legal_person_account_id;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -32,47 +33,63 @@ class AccountNumber
      */
     public function getUserId(): int
     {
-        return $this->userId;
+        return $this->user_id;
     }
 
     /**
-     * @param int $userId
+     * @param int $user_id
      */
-    public function setUserId(int $userId): void
+    public function setUserId(int $user_id): void
     {
-        $this->userId = $userId;
-    }
-
-    /**
-     * @return int
-     */
-    public function getNaturalPersonAccountId(): int
-    {
-        return $this->naturalPersonAccountId;
-    }
-
-    /**
-     * @param int $naturalPersonAccountId
-     */
-    public function setNaturalPersonAccountId(int $naturalPersonAccountId): void
-    {
-        $this->naturalPersonAccountId = $naturalPersonAccountId;
+        $this->user_id = $user_id;
     }
 
     /**
      * @return int
      */
-    public function getLegalPersonAccountId(): int
+    public function getAccountNumber(): int
     {
-        return $this->legalPersonAccountId;
+        return $this->account_number;
     }
 
     /**
-     * @param int $legalPersonAccountId
+     * @param int $account_number
      */
-    public function setLegalPersonAccountId(int $legalPersonAccountId): void
+    public function setAccountNumber(int $account_number): void
     {
-        $this->legalPersonAccountId = $legalPersonAccountId;
+        $this->account_number = $account_number;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNaturalPersonAccountId()
+    {
+        return $this->natural_person_account_id;
+    }
+
+    /**
+     * @param mixed $natural_person_account_id
+     */
+    public function setNaturalPersonAccountId($natural_person_account_id): void
+    {
+        $this->natural_person_account_id = $natural_person_account_id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLegalPersonAccountId()
+    {
+        return $this->legal_person_account_id;
+    }
+
+    /**
+     * @param mixed $legal_person_account_id
+     */
+    public function setLegalPersonAccountId($legal_person_account_id): void
+    {
+        $this->legal_person_account_id = $legal_person_account_id;
     }
 
     /**

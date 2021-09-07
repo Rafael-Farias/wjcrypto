@@ -6,7 +6,7 @@ class City
 {
     private int $id;
     private string $name;
-    private int $stateId;
+    private int $state_id;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -47,15 +47,15 @@ class City
      */
     public function getStateId(): int
     {
-        return $this->stateId;
+        return $this->state_id;
     }
 
     /**
-     * @param int $stateId
+     * @param int $state_id
      */
-    public function setStateId(int $stateId): void
+    public function setStateId(int $state_id): void
     {
-        $this->stateId = $stateId;
+        $this->state_id = $state_id;
     }
 
     /**
