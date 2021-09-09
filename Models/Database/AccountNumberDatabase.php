@@ -78,12 +78,9 @@ class AccountNumberDatabase extends Database
             $sqlQuery = "SELECT * FROM accounts_number where account_number=:account_number;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':account_number', $accountNumber, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_CLASS, AccountNumber::class);
-                return $statement->fetch();
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_CLASS, AccountNumber::class);
+            return $statement->fetch();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
         }

@@ -14,7 +14,7 @@ class NaturalPersonAccountDatabase extends Database
         $this->connection = static::getConnection();
     }
 
-    public function insert(string $name, string $cpf, string $rg, string $birthDate, float $balance, int $addressId)
+    public function insert(string $name, string $cpf, string $rg, string $birthDate, string $balance, int $addressId)
     {
         try {
             $sqlQuery = "INSERT INTO natural_person_accounts (`name`, `cpf`, `rg`, `birth_date`, `balance`, `address_id`) VALUES (:name, :cpf, :rg, :birth_date, :balance, :address_id);";
@@ -73,6 +73,19 @@ class NaturalPersonAccountDatabase extends Database
             }
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+        }
+    }
+
+    public function updateAccountBalance(string $balance, int $id)
+    {
+        try {
+            $sqlQuery = "UPDATE natural_person_accounts SET balance=:balance WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':balance', $balance);
+            $statement->bindParam(':id', $id, PDO::PARAM_INT);
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
         }

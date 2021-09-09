@@ -15,7 +15,9 @@
     "bissolli/validador-cpf-cnpj": "^1.2",
     "thiagocfn/inscricaoestadual": "^1.1",
     "codeinc/strip-accents": "^1.1",
-    "php-di/php-di": "^6.3"
+    "php-di/php-di": "^6.3",
+    "moneyphp/money": "^3.3",
+    "ext-intl": "*"
   },
   "autoload": {
     "psr-4": {

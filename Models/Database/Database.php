@@ -15,6 +15,7 @@ class Database
             try {
                 $dsn = 'mysql:host=localhost' . ';dbname=wjcrypto' . ';charset=utf8';
                 $conn = new PDO($dsn, 'root', 'qwert12345!');
+                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $exception) {
                 echo 'An error occurred while trying to connect to the database: ' . $exception->getMessage();
             }

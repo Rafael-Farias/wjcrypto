@@ -3,15 +3,18 @@
 namespace WjCrypto\Models\Services;
 
 use Bissolli\ValidadorCpfCnpj\CNPJ;
+use DI\Container;
 use Thiagocfn\InscricaoEstadual\Util\Validador;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\SanitizeString;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
+use WjCrypto\Models\Database\AddressDatabase;
 use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\ClientContactDatabase;
 use WjCrypto\Models\Database\LegalPersonAccountDatabase;
 use WjCrypto\Models\Database\StateDatabase;
+use WjCrypto\Models\Entities\LegalPersonAccount;
 
 class legalPersonAccountService
 {
@@ -53,7 +56,7 @@ class legalPersonAccountService
 
         $clientContactDatabase = new ClientContactDatabase();
         foreach ($newAccountData['contacts'] as $contact) {
-            $persistContactResult = $clientContactDatabase->insert($contact, $selectAccountByCnpjResult->getId(), null);
+            $persistContactResult = $clientContactDatabase->insert($contact, $selectAccountByCnpjResult->id, null);
             if (is_string($persistContactResult)) {
                 return $this->generateResponseArray($persistContactResult, 500);
             }
@@ -68,7 +71,7 @@ class legalPersonAccountService
         $accountNumberInsertResult = $accountNumberDatabase->insert(
             $userId,
             $accountNumber,
-            $selectAccountByCnpjResult->getId(),
+            $selectAccountByCnpjResult->id,
             null
         );
         if (is_string($accountNumberInsertResult)) {
@@ -185,5 +188,55 @@ class legalPersonAccountService
         $allAccounts = $accountNumberDatabase->selectAll();
         $counter = count($allAccounts);
         return $legalPersonIdentifier . $userId . $counter;
+    }
+
+    public function generateLegalPersonAccountObject(int $accountNumber)
+    {
+        $container = new Container();
+        $legalPersonAccount = $container->get(LegalPersonAccount::class);
+
+        $accountNumberDatabase = new AccountNumberDatabase();
+        $accountNumber = $accountNumberDatabase->selectByAccountNumber($accountNumber);
+
+        $legalPersonAccount->setAccountNumber($accountNumber);
+
+        $legalPersonAccountDatabase = new LegalPersonAccountDatabase();
+        $returnedAccount = $legalPersonAccountDatabase->selectById(
+            $legalPersonAccount->getAccountNumber()->getLegalPersonAccountId()
+        );
+
+        $legalPersonAccount->setId($returnedAccount->id);
+        $legalPersonAccount->setName($returnedAccount->name);
+        $legalPersonAccount->setCnpj($returnedAccount->cnpj);
+        $legalPersonAccount->setCompanyRegister($returnedAccount->company_register);
+        $legalPersonAccount->setFoundationDate($returnedAccount->foundation_date);
+        $legalPersonAccount->setBalance($returnedAccount->balance);
+        $legalPersonAccount->setAddressId($returnedAccount->address_id);
+        $legalPersonAccount->setCreationTimestamp($returnedAccount->creation_timestamp);
+        $legalPersonAccount->setUpdateTimestamp($returnedAccount->update_timestamp);
+
+        $addressDatabase = new AddressDatabase();
+        $accountAddress = $addressDatabase->selectById($legalPersonAccount->getAddressId());
+        $legalPersonAccount->setAddress($accountAddress);
+
+        $cityDatabase = new CityDatabase();
+        $city = $cityDatabase->selectById($accountAddress->getCityId());
+        $legalPersonAccount->setCity($city);
+
+        $stateDatabase = new StateDatabase();
+        $state = $stateDatabase->selectById($city->getStateId());
+        $legalPersonAccount->setState($state);
+
+        return $legalPersonAccount;
+    }
+
+    public function updateBalance(string $newBalance, int $id)
+    {
+        $legalPersonAccountDatabase = new LegalPersonAccountDatabase();
+        $result = $legalPersonAccountDatabase->updateAccountBalance($newBalance, $id);
+        if (is_string($result)) {
+            return $this->generateResponseArray($result, 400);
+        }
+        return $result;
     }
 }

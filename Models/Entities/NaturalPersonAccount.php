@@ -2,6 +2,9 @@
 
 namespace WjCrypto\Models\Entities;
 
+use Money\Currency;
+use Money\Money;
+
 class NaturalPersonAccount
 {
     private int $id;
@@ -9,7 +12,7 @@ class NaturalPersonAccount
     private string $cpf;
     private string $rg;
     private string $birth_date;
-    private float $balance;
+    private Money $balance;
     private int $address_id;
     private Address $address;
     private City $city;
@@ -114,19 +117,20 @@ class NaturalPersonAccount
     }
 
     /**
-     * @return float
+     * @return Money
      */
-    public function getBalance(): float
+    public function getBalance(): Money
     {
         return $this->balance;
     }
 
     /**
-     * @param float $balance
+     * @param string $balance
      */
-    public function setBalance(float $balance): void
+    public function setBalance(string $balance): void
     {
-        $this->balance = $balance;
+        $newBalance = new Money($balance, new Currency('BRL'));
+        $this->balance = $newBalance;
     }
 
     /**

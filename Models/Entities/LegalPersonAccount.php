@@ -2,6 +2,9 @@
 
 namespace WjCrypto\Models\Entities;
 
+use Money\Currency;
+use Money\Money;
+
 class LegalPersonAccount
 {
     private int $id;
@@ -9,10 +12,28 @@ class LegalPersonAccount
     private string $cnpj;
     private string $company_register;
     private string $foundation_date;
-    private float $balance;
+    private Money $balance;
     private int $address_id;
+    private Address $address;
+    private City $city;
+    private State $state;
+    private AccountNumber $accountNumber;
     private string $creation_timestamp;
     private string $update_timestamp;
+
+    /**
+     * @param Address $address
+     * @param City $city
+     * @param State $state
+     * @param AccountNumber $accountNumber
+     */
+    public function __construct(Address $address, City $city, State $state, AccountNumber $accountNumber)
+    {
+        $this->address = $address;
+        $this->city = $city;
+        $this->state = $state;
+        $this->accountNumber = $accountNumber;
+    }
 
     /**
      * @return int
@@ -95,19 +116,20 @@ class LegalPersonAccount
     }
 
     /**
-     * @return float
+     * @return Money
      */
-    public function getBalance(): float
+    public function getBalance(): Money
     {
         return $this->balance;
     }
 
     /**
-     * @param float $balance
+     * @param $balance
      */
-    public function setBalance(float $balance): void
+    public function setBalance($balance): void
     {
-        $this->balance = $balance;
+        $newBalance = new Money($balance, new Currency('BRL'));
+        $this->balance = $newBalance;
     }
 
     /**
@@ -124,6 +146,70 @@ class LegalPersonAccount
     public function setAddressId(int $address_id): void
     {
         $this->address_id = $address_id;
+    }
+
+    /**
+     * @return Address
+     */
+    public function getAddress(): Address
+    {
+        return $this->address;
+    }
+
+    /**
+     * @param Address $address
+     */
+    public function setAddress(Address $address): void
+    {
+        $this->address = $address;
+    }
+
+    /**
+     * @return City
+     */
+    public function getCity(): City
+    {
+        return $this->city;
+    }
+
+    /**
+     * @param City $city
+     */
+    public function setCity(City $city): void
+    {
+        $this->city = $city;
+    }
+
+    /**
+     * @return State
+     */
+    public function getState(): State
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param State $state
+     */
+    public function setState(State $state): void
+    {
+        $this->state = $state;
+    }
+
+    /**
+     * @return AccountNumber
+     */
+    public function getAccountNumber(): AccountNumber
+    {
+        return $this->accountNumber;
+    }
+
+    /**
+     * @param AccountNumber $accountNumber
+     */
+    public function setAccountNumber(AccountNumber $accountNumber): void
+    {
+        $this->accountNumber = $accountNumber;
     }
 
     /**

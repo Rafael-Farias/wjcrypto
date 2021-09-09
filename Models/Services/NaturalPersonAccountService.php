@@ -3,7 +3,6 @@
 namespace WjCrypto\Models\Services;
 
 use Bissolli\ValidadorCpfCnpj\CPF;
-use CodeInc\StripAccents\StripAccents;
 use DI\Container;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Middlewares\AuthMiddleware;
@@ -42,7 +41,7 @@ class NaturalPersonAccountService
             $newAccountData['cpf'],
             $newAccountData['rg'],
             $birthDate->format('Y/m/d'),
-            0,
+            '0',
             $address->getId()
         );
 
@@ -192,5 +191,15 @@ class NaturalPersonAccountService
         $naturalPersonAccount->setState($state);
 
         return $naturalPersonAccount;
+    }
+
+    public function updateBalance(string $newBalance, int $id)
+    {
+        $naturalPersonAccountDatabase = new NaturalPersonAccountDatabase();
+        $result = $naturalPersonAccountDatabase->updateAccountBalance($newBalance, $id);
+        if (is_string($result)) {
+            return $this->generateResponseArray($result, 400);
+        }
+        return $result;
     }
 }
