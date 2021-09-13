@@ -21,5 +21,7 @@ SimpleRouter::group(['middleware' => AuthMiddleware::class], function () {
     });
     SimpleRouter::group(['prefix' => '/transactions'], function () {
         SimpleRouter::post('/deposit', [TransactionsController::class, 'deposit']);
+        SimpleRouter::post('/withdraw', [TransactionsController::class, 'withdraw']);
+        SimpleRouter::post('/transfer', [TransactionsController::class, 'transfer']);
     });
 });

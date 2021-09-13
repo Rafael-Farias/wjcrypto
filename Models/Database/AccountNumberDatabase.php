@@ -85,4 +85,26 @@ class AccountNumberDatabase extends Database
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
         }
     }
+
+
+    /**
+     * @param int $userId
+     * @return AccountNumber|string
+     */
+    public function selectByUserId(int $userId)
+    {
+        /**
+         * @var $accountNumber AccountNumber
+         */
+        try {
+            $sqlQuery = "SELECT * FROM accounts_number where user_id=:user_id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_CLASS, AccountNumber::class);
+            return $statement->fetch();
+        } catch (\PDOException $exception) {
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+        }
+    }
 }

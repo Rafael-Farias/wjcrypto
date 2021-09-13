@@ -7,6 +7,8 @@ use Egulias\EmailValidator\Validation\DNSCheckValidation;
 use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
 use Egulias\EmailValidator\Validation\RFCValidation;
 use WjCrypto\Helpers\ResponseArray;
+use WjCrypto\Middlewares\AuthMiddleware;
+use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Database\UserDatabase;
 use WjCrypto\Models\Entities\User;
 
@@ -167,6 +169,30 @@ class UserService
         }
         $errorMessage = 'Error! The email ' . $email . ' is already in use.';
         return $this->generateResponseArray($errorMessage, 400);
+    }
+
+    public function getLoggedUserAccount()
+    {
+        $authMiddleware = new AuthMiddleware();
+        $userId = $authMiddleware->getUserId();
+
+        $accountDatabase = new AccountNumberDatabase();
+        $accountNumber = $accountDatabase->selectByUserId($userId);
+
+        $naturalPersonAccountId = $accountNumber->getNaturalPersonAccountId();
+        $legalPersonAccountId = $accountNumber->getLegalPersonAccountId();
+
+        if (is_numeric($naturalPersonAccountId) === true && is_null($legalPersonAccountId) === true) {
+            $accountService = new NaturalPersonAccountService();
+            return $accountService->generateNaturalPersonAccountObject(
+                $accountNumber->getAccountNumber()
+            );
+        }
+        if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
+            $accountService = new legalPersonAccountService();
+            return $accountService->generateLegalPersonAccountObject($accountNumber->getAccountNumber());
+        }
+        return null;
     }
 
 }
