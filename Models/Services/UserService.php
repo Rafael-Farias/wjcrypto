@@ -43,11 +43,10 @@ class UserService
         }
         $validator = new EmailValidator();
         $multipleValidations = new MultipleValidationWithAnd([
-                                                                 new RFCValidation(),
-                                                                 new DNSCheckValidation()
-                                                             ]);
+            new RFCValidation(),
+            new DNSCheckValidation()
+        ]);
         $email = input('email');
-
         if ($validator->isValid($email, $multipleValidations) === false) {
             $errorMessage = 'Error! Invalid email.';
             return $this->generateResponseArray($errorMessage, 400);
@@ -148,9 +147,9 @@ class UserService
 
         $validator = new EmailValidator();
         $multipleValidations = new MultipleValidationWithAnd([
-                                                                 new RFCValidation(),
-                                                                 new DNSCheckValidation()
-                                                             ]);
+            new RFCValidation(),
+            new DNSCheckValidation()
+        ]);
 
         if ($validator->isValid($email, $multipleValidations) === false) {
             $errorMessage = 'Error! Invalid email or password.';
@@ -171,28 +170,13 @@ class UserService
         return $this->generateResponseArray($errorMessage, 400);
     }
 
-    public function getLoggedUserAccount()
+    public function getLoggedUserAccountNumber(): int
     {
         $authMiddleware = new AuthMiddleware();
         $userId = $authMiddleware->getUserId();
 
         $accountDatabase = new AccountNumberDatabase();
-        $accountNumber = $accountDatabase->selectByUserId($userId);
-
-        $naturalPersonAccountId = $accountNumber->getNaturalPersonAccountId();
-        $legalPersonAccountId = $accountNumber->getLegalPersonAccountId();
-
-        if (is_numeric($naturalPersonAccountId) === true && is_null($legalPersonAccountId) === true) {
-            $accountService = new NaturalPersonAccountService();
-            return $accountService->generateNaturalPersonAccountObject(
-                $accountNumber->getAccountNumber()
-            );
-        }
-        if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
-            $accountService = new legalPersonAccountService();
-            return $accountService->generateLegalPersonAccountObject($accountNumber->getAccountNumber());
-        }
-        return null;
+        return $accountDatabase->selectByUserId($userId)->getAccountNumber();
     }
 
 }

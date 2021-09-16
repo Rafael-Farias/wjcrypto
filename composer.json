@@ -17,7 +17,8 @@
     "codeinc/strip-accents": "^1.1",
     "php-di/php-di": "^6.3",
     "moneyphp/money": "^3.3",
-    "ext-intl": "*"
+    "ext-intl": "*",
+    "ext-openssl": "*"
   },
   "autoload": {
     "psr-4": {

@@ -8,23 +8,23 @@
     "packages": [
         {
             "name": "bissolli/validador-cpf-cnpj",
-            "version": "1.2.2",
+            "version": "v1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bissolli/validador-cpf-cnpj.git",
-                "reference": "b358473e7fae8944fc88b18158886fcc3ee2c404"
+                "reference": "9ae383648473ea8b7040d766ced8aeb1a1cf3fc8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bissolli/validador-cpf-cnpj/zipball/b358473e7fae8944fc88b18158886fcc3ee2c404",
-                "reference": "b358473e7fae8944fc88b18158886fcc3ee2c404",
+                "url": "https://api.github.com/repos/bissolli/validador-cpf-cnpj/zipball/9ae383648473ea8b7040d766ced8aeb1a1cf3fc8",
+                "reference": "9ae383648473ea8b7040d766ced8aeb1a1cf3fc8",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2"
+                "php": ">=5.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^8.5"
+                "phpunit/phpunit": "~4.0"
             },
             "type": "library",
             "autoload": {
@@ -52,7 +52,11 @@
                 "laravel",
                 "validador"
             ],
-            "time": "2020-02-01T18:38:04+00:00"
+            "support": {
+                "issues": "https://github.com/bissolli/validador-cpf-cnpj/issues",
+                "source": "https://github.com/bissolli/validador-cpf-cnpj/tree/master"
+            },
+            "time": "2018-08-14T09:13:34+00:00"
         },
         {
             "name": "codeinc/strip-accents",
@@ -94,6 +98,10 @@
             ],
             "description": "Removes accents from strings",
             "homepage": "https://github.com/CodeIncHQ/StripAccents",
+            "support": {
+                "issues": "https://github.com/codeinchq/strip-accents/issues",
+                "source": "https://github.com/codeinchq/strip-accents/tree/1.1.0"
+            },
             "time": "2020-07-17T15:54:12+00:00"
         },
         {
@@ -156,6 +164,10 @@
                 "parser",
                 "php"
             ],
+            "support": {
+                "issues": "https://github.com/doctrine/lexer/issues",
+                "source": "https://github.com/doctrine/lexer/tree/1.2.1"
+            },
             "funding": [
                 {
                     "url": "https://www.doctrine-project.org/sponsorship.html",
@@ -228,6 +240,10 @@
                 "validation",
                 "validator"
             ],
+            "support": {
+                "issues": "https://github.com/egulias/EmailValidator/issues",
+                "source": "https://github.com/egulias/EmailValidator/tree/3.1.1"
+            },
             "funding": [
                 {
                     "url": "https://github.com/egulias",
@@ -287,6 +303,10 @@
                 "jwt",
                 "php"
             ],
+            "support": {
+                "issues": "https://github.com/firebase/php-jwt/issues",
+                "source": "https://github.com/firebase/php-jwt/tree/v5.4.0"
+            },
             "time": "2021-06-23T19:00:23+00:00"
         },
         {
@@ -369,6 +389,10 @@
                 "money",
                 "vo"
             ],
+            "support": {
+                "issues": "https://github.com/moneyphp/money/issues",
+                "source": "https://github.com/moneyphp/money/tree/master"
+            },
             "time": "2020-03-18T17:49:59+00:00"
         },
         {
@@ -451,6 +475,10 @@
                 "logging",
                 "psr-3"
             ],
+            "support": {
+                "issues": "https://github.com/Seldaek/monolog/issues",
+                "source": "https://github.com/Seldaek/monolog/tree/2.3.2"
+            },
             "funding": [
                 {
                     "url": "https://github.com/Seldaek",
@@ -522,6 +550,10 @@
                 "serialization",
                 "serialize"
             ],
+            "support": {
+                "issues": "https://github.com/opis/closure/issues",
+                "source": "https://github.com/opis/closure/tree/3.6.2"
+            },
             "time": "2021-04-09T13:42:10+00:00"
         },
         {
@@ -581,6 +613,10 @@
                 "simple-php-router",
                 "url-handling"
             ],
+            "support": {
+                "issues": "https://github.com/skipperbent/simple-php-router/issues",
+                "source": "https://github.com/skipperbent/simple-php-router/issues"
+            },
             "time": "2021-07-17T23:45:36+00:00"
         },
         {
@@ -626,6 +662,10 @@
                 "invoke",
                 "invoker"
             ],
+            "support": {
+                "issues": "https://github.com/PHP-DI/Invoker/issues",
+                "source": "https://github.com/PHP-DI/Invoker/tree/2.3.2"
+            },
             "funding": [
                 {
                     "url": "https://github.com/mnapoli",
@@ -694,6 +734,10 @@
                 "ioc",
                 "psr11"
             ],
+            "support": {
+                "issues": "https://github.com/PHP-DI/PHP-DI/issues",
+                "source": "https://github.com/PHP-DI/PHP-DI/tree/6.3.5"
+            },
             "funding": [
                 {
                     "url": "https://github.com/mnapoli",
@@ -742,6 +786,10 @@
                 "phpdoc",
                 "reflection"
             ],
+            "support": {
+                "issues": "https://github.com/PHP-DI/PhpDocReader/issues",
+                "source": "https://github.com/PHP-DI/PhpDocReader/tree/2.2.1"
+            },
             "time": "2020-10-12T12:39:22+00:00"
         },
         {
@@ -786,6 +834,10 @@
                 "container-interop",
                 "psr"
             ],
+            "support": {
+                "issues": "https://github.com/php-fig/container/issues",
+                "source": "https://github.com/php-fig/container/tree/1.1.1"
+            },
             "time": "2021-03-05T17:36:06+00:00"
         },
         {
@@ -833,6 +885,9 @@
                 "psr",
                 "psr-3"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/1.1.4"
+            },
             "time": "2021-05-03T11:20:27+00:00"
         },
         {
@@ -903,6 +958,9 @@
                 "portable",
                 "shim"
             ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.23.0"
+            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -984,6 +1042,9 @@
                 "portable",
                 "shim"
             ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.23.0"
+            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -1057,6 +1118,9 @@
                 "portable",
                 "shim"
             ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php72/tree/v1.23.0"
+            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -1112,6 +1176,10 @@
             ],
             "description": "Biblioteca em PHP para validação de todas as Inscrições Estaduais de todo o Brasil, seguindo as regras da SEFAZ. http://www.sintegra.gov.br/insc_est.html",
             "homepage": "https://github.com/thiagocfn/inscricaoestadual",
+            "support": {
+                "issues": "https://github.com/Thiagocfn/InscricaoEstadual/issues",
+                "source": "https://github.com/Thiagocfn/InscricaoEstadual/tree/1.1.2"
+            },
             "time": "2021-03-12T00:57:51+00:00"
         }
     ],
@@ -1127,5 +1195,5 @@
         "ext-intl": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.1.0"
 }

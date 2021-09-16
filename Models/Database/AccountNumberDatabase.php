@@ -67,9 +67,9 @@ class AccountNumberDatabase extends Database
 
     /**
      * @param int $accountNumber
-     * @return AccountNumber|string
+     * @return AccountNumber|string|false
      */
-    public function selectByAccountNumber(int $accountNumber)
+    public function selectByAccountNumber(int $accountNumber): AccountNumber|bool|string
     {
         /**
          * @var $accountNumber AccountNumber
