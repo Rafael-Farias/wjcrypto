@@ -56,7 +56,7 @@ class NaturalPersonAccountService
 
         $clientContactDatabase = new ClientContactDatabase();
         foreach ($newAccountData['contacts'] as $contact) {
-            $persistContactResult = $clientContactDatabase->insert($contact, null, $selectAccountByCpfResult->id);
+            $persistContactResult = $clientContactDatabase->insert($contact, null, $selectAccountByCpfResult->getId());
             if (is_string($persistContactResult)) {
                 return $this->generateResponseArray($persistContactResult, 500);
             }
@@ -72,7 +72,7 @@ class NaturalPersonAccountService
             $userId,
             $accountNumber,
             null,
-            $selectAccountByCpfResult->id
+            $selectAccountByCpfResult->getId()
         );
         if (is_string($accountNumberInsertResult)) {
             return $this->generateResponseArray($accountNumberInsertResult, 500);
@@ -155,28 +155,15 @@ class NaturalPersonAccountService
 
     public function generateNaturalPersonAccountObject(int $accountNumber)
     {
-        $container = new Container();
-        $naturalPersonAccount = $container->get(NaturalPersonAccount::class);
-
         $accountNumberDatabase = new AccountNumberDatabase();
         $accountNumber = $accountNumberDatabase->selectByAccountNumber($accountNumber);
 
-        $naturalPersonAccount->setAccountNumber($accountNumber);
-
         $naturalPersonAccountDatabase = new NaturalPersonAccountDatabase();
-        $returnedAccount = $naturalPersonAccountDatabase->selectById(
-            $naturalPersonAccount->getAccountNumber()->getNaturalPersonAccountId()
+        $naturalPersonAccount = $naturalPersonAccountDatabase->selectById(
+            $accountNumber->getNaturalPersonAccountId()
         );
 
-        $naturalPersonAccount->setId($returnedAccount->id);
-        $naturalPersonAccount->setName($returnedAccount->name);
-        $naturalPersonAccount->setCpf($returnedAccount->cpf);
-        $naturalPersonAccount->setRg($returnedAccount->rg);
-        $naturalPersonAccount->setBirthDate($returnedAccount->birth_date);
-        $naturalPersonAccount->setBalance($returnedAccount->balance);
-        $naturalPersonAccount->setAddressId($returnedAccount->address_id);
-        $naturalPersonAccount->setCreationTimestamp($returnedAccount->creation_timestamp);
-        $naturalPersonAccount->setUpdateTimestamp($returnedAccount->update_timestamp);
+        $naturalPersonAccount->setAccountNumber($accountNumber);
 
         $addressDatabase = new AddressDatabase();
         $accountAddress = $addressDatabase->selectById($naturalPersonAccount->getAddressId());

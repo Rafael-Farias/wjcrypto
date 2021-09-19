@@ -2,7 +2,7 @@
 
 namespace WjCrypto\Helpers;
 
-trait cryptografyHelper
+trait CryptografyHelper
 {
 
     private $key = 'Qyk3y_sDb%W+?Pbu#V?uu%d8H5Wj?fA=@YyXY7jE+_X^CFzx9KVbmXYj^uP#%gV+';

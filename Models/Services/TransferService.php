@@ -6,7 +6,7 @@ use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Money;
 use Money\Parser\IntlLocalizedDecimalParser;
-use WjCrypto\Helpers\cryptografyHelper;
+use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Entities\LegalPersonAccount;
@@ -14,7 +14,7 @@ use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 class TransferService
 {
-    use cryptografyHelper;
+    use CryptografyHelper;
     use ResponseArray;
 
     public function transfer(): array

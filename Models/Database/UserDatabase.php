@@ -3,10 +3,13 @@
 namespace WjCrypto\Models\Database;
 
 use PDO;
+use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Models\Entities\User;
 
 class UserDatabase extends Database
 {
+    use CryptografyHelper;
+
     private PDO $connection;
 
     public function __construct()
@@ -21,11 +24,13 @@ class UserDatabase extends Database
      */
     public function insert(string $email, string $password)
     {
+        $encryptedEmail = $this->encrypt($email);
+        $encryptedPassword = $this->encrypt($password);
         try {
             $sqlQuery = "INSERT INTO users (`email`, `password`) VALUES (:email, :password);";
             $statement = $this->connection->prepare($sqlQuery);
-            $statement->bindParam(':email', $email);
-            $statement->bindParam(':password', $password);
+            $statement->bindParam(':email', $encryptedEmail);
+            $statement->bindParam(':password', $encryptedPassword);
             if ($statement->execute()) {
                 return true;
             }
@@ -41,17 +46,16 @@ class UserDatabase extends Database
      */
     public function selectAll()
     {
-        /**
-         * @var $user User
-         */
         try {
             $resultArray = [];
             $sqlQuery = "SELECT * FROM users;";
             $statement = $this->connection->prepare($sqlQuery);
             if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_CLASS, User::class);
+                $statement->setFetchMode(PDO::FETCH_ASSOC);
                 $queryReturn = $statement->fetchAll();
-                foreach ($queryReturn as $user) {
+                foreach ($queryReturn as $userAssociativeArray) {
+                    $decryptedArray = $this->decryptArray($userAssociativeArray);
+                    $user = $this->createUserObject($decryptedArray);
                     $resultArray[] = $user;
                 }
                 return $resultArray;
@@ -74,8 +78,10 @@ class UserDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
             if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_CLASS, User::class);
-                return $statement->fetch();
+                $statement->setFetchMode(PDO::FETCH_ASSOC);
+                $userAssociativeArray = $statement->fetch();
+                $decryptedArray = $this->decryptArray($userAssociativeArray);
+                return $this->createUserObject($decryptedArray);
             }
             $errorArray = $statement->errorInfo();
             return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
@@ -106,11 +112,13 @@ class UserDatabase extends Database
 
     public function update(string $email, string $password, int $userId)
     {
+        $encryptedEmail = $this->encrypt($email);
+        $encryptedPassword = $this->encrypt($password);
         try {
             $sqlQuery = "UPDATE users SET email=:email, password=:password WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
-            $statement->bindParam(':email', $email);
-            $statement->bindParam(':password', $password);
+            $statement->bindParam(':email', $encryptedEmail);
+            $statement->bindParam(':password', $encryptedPassword);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
             if ($statement->execute()) {
                 return true;
@@ -120,6 +128,36 @@ class UserDatabase extends Database
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\update: ' . $exception->getMessage();
         }
+    }
+
+    /**
+     * @param array $associativeArray
+     * @return array
+     */
+    private function decryptArray(array $associativeArray): array
+    {
+        $associativeArray['email'] = $this->decrypt($associativeArray['email']);
+        if (array_key_exists('password', $associativeArray) === true) {
+            $associativeArray['password'] = $this->decrypt($associativeArray['password']);
+        }
+        return $associativeArray;
+    }
+
+    /**
+     * @param array $associativeArray
+     * @return User
+     */
+    private function createUserObject(array $associativeArray): User
+    {
+        $user = new User();
+        $user->setId($associativeArray['id']);
+        $user->setEmail($associativeArray['email']);
+        if (array_key_exists('password', $associativeArray) === true) {
+            $user->setPassword($associativeArray['password']);
+        }
+        $user->setCreationTimestamp($associativeArray['creation_timestamp']);
+        $user->setUpdateTimestamp($associativeArray['update_timestamp']);
+        return $user;
     }
 
 }

@@ -135,7 +135,7 @@ class UserService
     /**
      * @return array|User
      */
-    public function validateEmailAndPasswordThenMatchesPersistedUser()
+    public function validateEmailAndPasswordThenMatchesPersistedUser(): User|array
     {
         $email = $_SERVER['PHP_AUTH_USER'];
         $password = $_SERVER['PHP_AUTH_PW'];
@@ -166,7 +166,7 @@ class UserService
                 }
             }
         }
-        $errorMessage = 'Error! The email ' . $email . ' is already in use.';
+        $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
         return $this->generateResponseArray($errorMessage, 400);
     }
 

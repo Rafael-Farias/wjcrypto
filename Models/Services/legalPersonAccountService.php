@@ -56,7 +56,7 @@ class legalPersonAccountService
 
         $clientContactDatabase = new ClientContactDatabase();
         foreach ($newAccountData['contacts'] as $contact) {
-            $persistContactResult = $clientContactDatabase->insert($contact, $selectAccountByCnpjResult->id, null);
+            $persistContactResult = $clientContactDatabase->insert($contact, $selectAccountByCnpjResult->getId(), null);
             if (is_string($persistContactResult)) {
                 return $this->generateResponseArray($persistContactResult, 500);
             }
@@ -71,7 +71,7 @@ class legalPersonAccountService
         $accountNumberInsertResult = $accountNumberDatabase->insert(
             $userId,
             $accountNumber,
-            $selectAccountByCnpjResult->id,
+            $selectAccountByCnpjResult->getId(),
             null
         );
         if (is_string($accountNumberInsertResult)) {
@@ -192,28 +192,15 @@ class legalPersonAccountService
 
     public function generateLegalPersonAccountObject(int $accountNumber)
     {
-        $container = new Container();
-        $legalPersonAccount = $container->get(LegalPersonAccount::class);
-
         $accountNumberDatabase = new AccountNumberDatabase();
         $accountNumber = $accountNumberDatabase->selectByAccountNumber($accountNumber);
 
-        $legalPersonAccount->setAccountNumber($accountNumber);
-
         $legalPersonAccountDatabase = new LegalPersonAccountDatabase();
-        $returnedAccount = $legalPersonAccountDatabase->selectById(
-            $legalPersonAccount->getAccountNumber()->getLegalPersonAccountId()
+        $legalPersonAccount = $legalPersonAccountDatabase->selectById(
+            $accountNumber->getLegalPersonAccountId()
         );
 
-        $legalPersonAccount->setId($returnedAccount->id);
-        $legalPersonAccount->setName($returnedAccount->name);
-        $legalPersonAccount->setCnpj($returnedAccount->cnpj);
-        $legalPersonAccount->setCompanyRegister($returnedAccount->company_register);
-        $legalPersonAccount->setFoundationDate($returnedAccount->foundation_date);
-        $legalPersonAccount->setBalance($returnedAccount->balance);
-        $legalPersonAccount->setAddressId($returnedAccount->address_id);
-        $legalPersonAccount->setCreationTimestamp($returnedAccount->creation_timestamp);
-        $legalPersonAccount->setUpdateTimestamp($returnedAccount->update_timestamp);
+        $legalPersonAccount->setAccountNumber($accountNumber);
 
         $addressDatabase = new AddressDatabase();
         $accountAddress = $addressDatabase->selectById($legalPersonAccount->getAddressId());

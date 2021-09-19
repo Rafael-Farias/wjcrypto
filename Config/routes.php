@@ -1,10 +1,18 @@
 <?php
 
 use Pecee\SimpleRouter\SimpleRouter;
+use WjCrypto\Config\ConfigureCitiesAndStates;
 use WjCrypto\Controllers\AccountController;
 use WjCrypto\Controllers\TransactionsController;
 use WjCrypto\Controllers\UsersController;
 use WjCrypto\Middlewares\AuthMiddleware;
+
+/**
+ *  This route will encrypt and persist the states and cities from Brazil in the database. Use this route only when is needed to persist all the states and cities.
+ */
+
+// SimpleRouter::get('/admin/set-states-and-cities', [ConfigureCitiesAndStates::class, 'persistCitiesAndStates']);
+
 
 SimpleRouter::post('/user', [UsersController::class, 'create']);
 SimpleRouter::group(['middleware' => AuthMiddleware::class], function () {
