@@ -17,8 +17,17 @@ class ClientContactDatabase extends Database
         $this->connection = static::getConnection();
     }
 
-    public function insert(string $telephone, int $legalPersonAccountId = null, int $naturalPersonAccountId = null)
-    {
+    /**
+     * @param string $telephone
+     * @param int|null $legalPersonAccountId
+     * @param int|null $naturalPersonAccountId
+     * @return bool|string
+     */
+    public function insert(
+        string $telephone,
+        int $legalPersonAccountId = null,
+        int $naturalPersonAccountId = null
+    ): bool|string {
         $encryptedTelephone = $this->encrypt($telephone);
         try {
             $sqlQuery = "INSERT INTO clients_contacts (`legal_person_account_id`, `natural_person_account_id`, `telephone`) VALUES (:legal_person_account_id, :natural_person_account_id, :telephone);";
@@ -26,13 +35,10 @@ class ClientContactDatabase extends Database
             $statement->bindParam(':telephone', $encryptedTelephone);
             $statement->bindParam(':legal_person_account_id', $legalPersonAccountId, PDO::PARAM_INT);
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\ClientContactDatabase\insert: ' . $exception->getMessage(
+                );
         }
     }
 

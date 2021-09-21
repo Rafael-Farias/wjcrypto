@@ -17,12 +17,19 @@ class AccountNumberDatabase extends Database
         $this->connection = static::getConnection();
     }
 
+    /**
+     * @param int $userId
+     * @param int $accountNumber
+     * @param int|null $legalPersonAccountId
+     * @param int|null $naturalPersonAccountId
+     * @return bool|string
+     */
     public function insert(
         int $userId,
         int $accountNumber,
         int $legalPersonAccountId = null,
         int $naturalPersonAccountId = null
-    ) {
+    ): bool|string {
         $encryptedAccountNumber = $this->encrypt($accountNumber);
         try {
             $sqlQuery = "INSERT INTO accounts_number (`user_id`, `account_number`, `legal_person_account_id`, `natural_person_account_id`) VALUES (:user_id, :account_number, :legal_person_account_id, :natural_person_account_id);";
@@ -31,11 +38,7 @@ class AccountNumberDatabase extends Database
             $statement->bindParam(':account_number', $encryptedAccountNumber);
             $statement->bindParam(':legal_person_account_id', $legalPersonAccountId, PDO::PARAM_INT);
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\insert: ' . $exception->getMessage(
                 );
@@ -43,30 +46,29 @@ class AccountNumberDatabase extends Database
     }
 
     /**
-     * @return AccountNumber[]|string
+     * @return AccountNumber[]|string|bool
      */
-    public function selectAll(): string|array
+    public function selectAll(): string|array|bool
     {
-        /**
-         * @var $accountNumber AccountNumber
-         */
         try {
             $resultArray = [];
             $sqlQuery = "SELECT * FROM accounts_number;";
             $statement = $this->connection->prepare($sqlQuery);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $queryReturn = $statement->fetchAll();
-                foreach ($queryReturn as $row) {
-                    $decryptedRow = $this->decryptRow($row);
-                    $resultArray[] = $this->createAccountNumberObject($decryptedRow);
-                }
-                return $resultArray;
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $queryReturn = $statement->fetchAll();
+            if (empty($queryReturn)) {
+                return false;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            foreach ($queryReturn as $row) {
+                $decryptedRow = $this->decryptRow($row);
+                $accountNumber = $this->createAccountNumberObject($decryptedRow);
+                $resultArray[] = $accountNumber;
+            }
+            return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectAll: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -85,20 +87,21 @@ class AccountNumberDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                throw new \PDOException('Could not find the account number in the database.');
+                return $row;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByAccountNumber: ' . $exception->getMessage(
+                );
         }
     }
 
     /**
      * @param int $userId
-     * @return AccountNumber|string
+     * @return AccountNumber|string|bool
      */
-    public function selectByUserId(int $userId)
+    public function selectByUserId(int $userId): AccountNumber|bool|string
     {
         try {
             $sqlQuery = "SELECT * FROM accounts_number where user_id=:user_id;";
@@ -107,10 +110,14 @@ class AccountNumberDatabase extends Database
             $statement->execute();
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
+            }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByUserId: ' . $exception->getMessage(
+                );
         }
     }
 

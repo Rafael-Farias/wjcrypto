@@ -50,11 +50,7 @@ class LegalPersonAccountDatabase extends Database
             $statement->bindParam(':foundation_date', $encryptedFoundationDate);
             $statement->bindParam(':balance', $encryptedBalance);
             $statement->bindParam(':address_id', $addressId);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\insert: ' . $exception->getMessage(
                 );
@@ -72,16 +68,17 @@ class LegalPersonAccountDatabase extends Database
             $sqlQuery = "SELECT * FROM legal_person_accounts WHERE cnpj=:cnpj;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':cnpj', $encryptedCnpj);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createLegalPersonAccountObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectByCnpj: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -95,16 +92,17 @@ class LegalPersonAccountDatabase extends Database
             $sqlQuery = "SELECT * FROM legal_person_accounts WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createLegalPersonAccountObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectById: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -123,7 +121,8 @@ class LegalPersonAccountDatabase extends Database
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
             return $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
+                );
         }
     }
 

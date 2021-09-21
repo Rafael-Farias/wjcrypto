@@ -18,6 +18,15 @@ class NaturalPersonAccountDatabase extends Database
         $this->connection = static::getConnection();
     }
 
+    /**
+     * @param string $name
+     * @param string $cpf
+     * @param string $rg
+     * @param string $birthDate
+     * @param string $balance
+     * @param int $addressId
+     * @return bool|string
+     */
     public function insert(
         string $name,
         string $cpf,
@@ -40,11 +49,8 @@ class NaturalPersonAccountDatabase extends Database
             $statement->bindParam(':birth_date', $encryptedBirthDate);
             $statement->bindParam(':balance', $encryptedBalance);
             $statement->bindParam(':address_id', $addressId);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\insert: ' . $exception->getMessage(
                 );
@@ -61,16 +67,17 @@ class NaturalPersonAccountDatabase extends Database
             $sqlQuery = "SELECT * FROM natural_person_accounts WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createLegalPersonAccountObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectById: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -85,16 +92,17 @@ class NaturalPersonAccountDatabase extends Database
             $sqlQuery = "SELECT * FROM natural_person_accounts WHERE cpf=:cpf;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':cpf', $encryptedCpf);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createLegalPersonAccountObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectByCpf: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -108,7 +116,8 @@ class NaturalPersonAccountDatabase extends Database
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
             return $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
+                );
         }
     }
 

@@ -23,7 +23,7 @@ class AddressDatabase extends Database
      * @param int $cityId
      * @return bool|string
      */
-    public function insert(string $address, string $addressComplement, int $cityId)
+    public function insert(string $address, string $addressComplement, int $cityId): bool|string
     {
         $encryptedAddress = $this->encrypt($address);
         $encryptedAddressComplement = $this->encrypt($addressComplement);
@@ -33,11 +33,7 @@ class AddressDatabase extends Database
             $statement->bindParam(':address', $encryptedAddress);
             $statement->bindParam(':complement', $encryptedAddressComplement);
             $statement->bindParam(':city_id', $cityId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' . $exception->getMessage();
         }
@@ -54,16 +50,17 @@ class AddressDatabase extends Database
             $sqlQuery = "SELECT * FROM addresses WHERE address=:address;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':address', $encryptedAddress);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createAddressObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createAddressObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectByAddress: ' . $exception->getMessage(
+                );
         }
     }
 
@@ -77,14 +74,14 @@ class AddressDatabase extends Database
             $sqlQuery = "SELECT * FROM addresses WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createAddressObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createAddressObject($decryptedRow);
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
         }

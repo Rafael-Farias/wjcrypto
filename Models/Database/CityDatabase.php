@@ -17,6 +17,11 @@ class CityDatabase extends Database
         $this->connection = static::getConnection();
     }
 
+    /**
+     * @param string $name
+     * @param string $stateInitials
+     * @return bool|string
+     */
     public function insert(string $name, string $stateInitials): bool|string
     {
         $encryptedName = $this->encrypt($name);
@@ -26,11 +31,7 @@ class CityDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':state_initials', $encryptedStateInitials);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\CityDatabase\insert: ' . $exception->getMessage();
         }
@@ -46,24 +47,26 @@ class CityDatabase extends Database
             $sqlQuery = "SELECT * FROM cities WHERE state_id=:state_id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':state_id', $stateId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $queryReturn = $statement->fetchAll();
-                foreach ($queryReturn as $row) {
-                    $decryptedRow = $this->decryptRow($row);
-                    $city = $this->createCityObject($decryptedRow);
-                    $resultArray[] = $city;
-                }
-                return $resultArray;
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $queryReturn = $statement->fetchAll();
+            if (empty($queryReturn)) {
+                return false;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            foreach ($queryReturn as $row) {
+                $decryptedRow = $this->decryptRow($row);
+                $city = $this->createCityObject($decryptedRow);
+                $resultArray[] = $city;
+            }
+            return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectAllByState: ' . $exception->getMessage(
+                );
         }
     }
 
     /**
+     * @param int $id
      * @return City|string
      */
     public function selectById(int $id): string|City
@@ -72,19 +75,16 @@ class CityDatabase extends Database
             $sqlQuery = "SELECT * FROM cities WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                if ($row === false) {
-                    throw new \PDOException('Could not find the city in the database.');
-                }
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createCityObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createCityObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectById: ' . $exception->getMessage();
         }
     }
 

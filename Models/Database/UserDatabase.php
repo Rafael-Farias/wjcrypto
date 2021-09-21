@@ -22,7 +22,7 @@ class UserDatabase extends Database
      * @param string $password
      * @return bool|string
      */
-    public function insert(string $email, string $password)
+    public function insert(string $email, string $password): bool|string
     {
         $encryptedEmail = $this->encrypt($email);
         $encryptedPassword = $this->encrypt($password);
@@ -31,37 +31,33 @@ class UserDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':email', $encryptedEmail);
             $statement->bindParam(':password', $encryptedPassword);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\insert: ' . $exception->getMessage();
         }
     }
 
     /**
-     * @return User[]|string
+     * @return User[]|string|bool
      */
-    public function selectAll()
+    public function selectAll(): array|string|bool
     {
         try {
             $resultArray = [];
             $sqlQuery = "SELECT * FROM users;";
             $statement = $this->connection->prepare($sqlQuery);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $queryReturn = $statement->fetchAll();
-                foreach ($queryReturn as $userAssociativeArray) {
-                    $decryptedArray = $this->decryptArray($userAssociativeArray);
-                    $user = $this->createUserObject($decryptedArray);
-                    $resultArray[] = $user;
-                }
-                return $resultArray;
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $queryReturn = $statement->fetchAll();
+            if (empty($queryReturn)) {
+                return false;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            foreach ($queryReturn as $userAssociativeArray) {
+                $decryptedArray = $this->decryptArray($userAssociativeArray);
+                $user = $this->createUserObject($decryptedArray);
+                $resultArray[] = $user;
+            }
+            return $resultArray;
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
         }
@@ -71,20 +67,20 @@ class UserDatabase extends Database
      * @param int $userId
      * @return User|string|bool
      */
-    public function selectById(int $userId)
+    public function selectById(int $userId): User|bool|string
     {
         try {
             $sqlQuery = "SELECT `id`,`email`,`creation_timestamp`,`update_timestamp` FROM users WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $userAssociativeArray = $statement->fetch();
-                $decryptedArray = $this->decryptArray($userAssociativeArray);
-                return $this->createUserObject($decryptedArray);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedArray = $this->decryptArray($row);
+            return $this->createUserObject($decryptedArray);
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
         }
@@ -94,23 +90,25 @@ class UserDatabase extends Database
      * @param int $userId
      * @return bool|string
      */
-    public function delete(int $userId)
+    public function delete(int $userId): bool|string
     {
         try {
             $sqlQuery = "DELETE FROM users WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
         }
     }
 
-    public function update(string $email, string $password, int $userId)
+    /**
+     * @param string $email
+     * @param string $password
+     * @param int $userId
+     * @return bool|string
+     */
+    public function update(string $email, string $password, int $userId): bool|string
     {
         $encryptedEmail = $this->encrypt($email);
         $encryptedPassword = $this->encrypt($password);
@@ -120,11 +118,7 @@ class UserDatabase extends Database
             $statement->bindParam(':email', $encryptedEmail);
             $statement->bindParam(':password', $encryptedPassword);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
             return 'PDO error on method WjCrypto\Models\Database\UserDatabase\update: ' . $exception->getMessage();
         }

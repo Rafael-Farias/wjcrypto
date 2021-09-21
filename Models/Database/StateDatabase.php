@@ -31,13 +31,9 @@ class StateDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':state_initials', $encryptedStateInitials);
-            if ($statement->execute()) {
-                return true;
-            }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            return $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\insert: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\insert: ' . $exception->getMessage();
         }
     }
 
@@ -50,20 +46,20 @@ class StateDatabase extends Database
             $resultArray = [];
             $sqlQuery = "SELECT * FROM states;";
             $statement = $this->connection->prepare($sqlQuery);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $queryReturn = $statement->fetchAll();
-                foreach ($queryReturn as $row) {
-                    $decryptedRow = $this->decryptRow($row);
-                    $state = $this->createStateObject($decryptedRow);
-                    $resultArray[] = $state;
-                }
-                return $resultArray;
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $queryReturn = $statement->fetchAll();
+            if (empty($queryReturn)) {
+                return false;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            foreach ($queryReturn as $row) {
+                $decryptedRow = $this->decryptRow($row);
+                $state = $this->createStateObject($decryptedRow);
+                $resultArray[] = $state;
+            }
+            return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectAll: ' . $exception->getMessage();
         }
     }
 
@@ -77,19 +73,16 @@ class StateDatabase extends Database
             $sqlQuery = "SELECT * FROM states where id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
-            if ($statement->execute()) {
-                $statement->setFetchMode(PDO::FETCH_ASSOC);
-                $row = $statement->fetch();
-                if ($row === false) {
-                    throw new \PDOException('Could not find the city in the database.');
-                }
-                $decryptedRow = $this->decryptRow($row);
-                return $this->createStateObject($decryptedRow);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $row = $statement->fetch();
+            if ($row === false) {
+                return $row;
             }
-            $errorArray = $statement->errorInfo();
-            return $errorArray[2] . ' SQLSTATE error code: ' . $errorArray[0] . ' Driver error code: ' . $errorArray[1];
+            $decryptedRow = $this->decryptRow($row);
+            return $this->createStateObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage();
+            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectById: ' . $exception->getMessage();
         }
     }
 
