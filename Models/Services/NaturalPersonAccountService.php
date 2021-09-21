@@ -97,6 +97,15 @@ class NaturalPersonAccountService
         ];
         $newAccountData = input()->all();
 
+        $authMiddleware = new AuthMiddleware();
+        $userId = $authMiddleware->getUserId();
+        $accountNumberDatabase = new AccountNumberDatabase();
+        $selectResult = $accountNumberDatabase->selectByUserId($userId);
+        if ($selectResult !== false){
+            $message = 'Error! The logged user already has an account.';
+            return $this->generateResponseArray($message, 400);
+        }
+
         foreach ($requiredFields as $requiredField) {
             $isRequiredFieldInRequest = array_key_exists($requiredField, $newAccountData);
             if ($isRequiredFieldInRequest === false) {
@@ -104,6 +113,7 @@ class NaturalPersonAccountService
                 return $this->generateResponseArray($message, 400);
             }
         }
+
 
         foreach ($newAccountData as $key => $field) {
             if (empty($field)) {
