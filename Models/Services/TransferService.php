@@ -6,6 +6,8 @@ use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Money;
 use Money\Parser\IntlLocalizedDecimalParser;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\AccountNumberDatabase;
@@ -187,5 +189,12 @@ class TransferService
         $numberFormatter = new \NumberFormatter('pt-BR', \NumberFormatter::DECIMAL);
         $moneyParser = new IntlLocalizedDecimalParser($numberFormatter, $currencies);
         return $moneyParser->parse($value, new Currency('BRL'));
+    }
+
+    private function registerLog(string $message)
+    {
+        $logger = new Logger('login');
+        $logger->pushHandler(new StreamHandler(__DIR__ . '/../../Logs/transaction.log', Logger::INFO));
+        $logger->info($message);
     }
 }

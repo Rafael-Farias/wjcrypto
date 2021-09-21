@@ -6,6 +6,8 @@ use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Money;
 use Money\Parser\IntlLocalizedDecimalParser;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Entities\LegalPersonAccount;
@@ -145,6 +147,17 @@ class WithdrawService
             return $this->generateResponseArray($message, 400);
         }
         $message = 'Success!';
+        $this->registerLog(
+            'Withdraw made from account ' . $account->getAccountNumber()->getAccountNumber(
+            ) . ' with new balance ' . $newBalance->getAmount() . '.'
+        );
         return $this->generateResponseArray($message, 200);
+    }
+
+    private function registerLog(string $message)
+    {
+        $logger = new Logger('login');
+        $logger->pushHandler(new StreamHandler(__DIR__ . '/../../Logs/transaction.log', Logger::INFO));
+        $logger->info($message);
     }
 }

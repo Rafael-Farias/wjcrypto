@@ -5,8 +5,12 @@ namespace WjCrypto\Models\Services;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Parser\IntlLocalizedDecimalParser;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\AccountNumberDatabase;
+use WjCrypto\Models\Entities\LegalPersonAccount;
+use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 class DepositService
 {
@@ -103,14 +107,14 @@ class DepositService
     }
 
     /**
-     * @param $account
+     * @param NaturalPersonAccount|LegalPersonAccount $account
      * @param $depositValueString
      * @param $accountService
-     * @param $naturalPersonAccountId
+     * @param $accountId
      * @return array
      */
     private function makeTheDeposit(
-        $account,
+        NaturalPersonAccount|LegalPersonAccount $account,
         $depositValueString,
         $accountService,
         $accountId
@@ -130,6 +134,18 @@ class DepositService
             return $this->generateResponseArray($message, 400);
         }
         $message = 'Success!';
+        $this->registerLog(
+            'Deposit made into the account: ' . $account->getAccountNumber()->getAccountNumber(
+            ) . ' with value: ' . $depositValue->getAmount()
+        );
         return $this->generateResponseArray($message, 200);
     }
+
+    private function registerLog(string $message)
+    {
+        $logger = new Logger('login');
+        $logger->pushHandler(new StreamHandler(__DIR__ . '/../../Logs/transaction.log', Logger::INFO));
+        $logger->info($message);
+    }
 }
+

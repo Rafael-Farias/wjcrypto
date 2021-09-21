@@ -7,6 +7,8 @@ use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\SignatureInvalidException;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Pecee\Http\Middleware\IMiddleware;
 use Pecee\Http\Request;
 use WjCrypto\Helpers\JsonResponse;
@@ -47,6 +49,7 @@ class AuthMiddleware implements IMiddleware
                         $this->sendJsonResponse($validationResult['message'], $validationResult['httpResponseCode']);
                     }
                     $jwt = $this->encodeJwt($validationResult);
+                    $this->registerLog('User ' . $validationResult->getEmail() . ' logged in.');
                     $this->sendJsonResponse($jwt, 200);
                     break;
 
@@ -87,6 +90,7 @@ class AuthMiddleware implements IMiddleware
                 $userService = new UserService();
                 $user = $userService->getUser($token->id);
                 $newJwt = $this->encodeJwt($user['message']);
+                $this->registerLog('User ' . $user['message']->getEmail() . ' updated the JWT Token.');
                 response()->header('updated-token: ' . $newJwt['jwt']);
                 break;
 
@@ -177,5 +181,12 @@ class AuthMiddleware implements IMiddleware
         }
 
         return $token->id;
+    }
+
+    private function registerLog(string $message)
+    {
+        $logger = new Logger('login');
+        $logger->pushHandler(new StreamHandler(__DIR__ . '/../Logs/login.log', Logger::INFO));
+        $logger->info($message);
     }
 }
