@@ -205,7 +205,7 @@ class UserService
         }
         $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
         $this->sendJsonMessage($errorMessage, 400);
-        
+
         return $foundUser;
     }
 
