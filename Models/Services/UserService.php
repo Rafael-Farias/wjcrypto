@@ -188,8 +188,6 @@ class UserService
     {
         $this->validateEmailAndPassword($email, $password);
 
-        $foundUser = null;
-
         $userDatabase = new UserDatabase();
         $usersArray = $userDatabase->selectAll();
         if ($usersArray === false) {
@@ -199,14 +197,13 @@ class UserService
             if ($user->getEmail() === $email) {
                 $isPasswordCorrect = password_verify($password, $user->getPassword());
                 if ($isPasswordCorrect) {
-                    $foundUser = $user;
+                    return $user;
                 }
             }
         }
         $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
         $this->sendJsonMessage($errorMessage, 400);
-
-        return $foundUser;
+        exit(0);
     }
 
     /**
