@@ -6,12 +6,10 @@ use Money\Money;
 use Monolog\Logger;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\ValidationHelper;
 
 class WithdrawService extends Transaction
 {
-    use ResponseArray;
     use ValidationHelper;
     use LogHelper;
     use MoneyHelper;

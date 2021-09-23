@@ -7,12 +7,10 @@ use Monolog\Logger;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\ValidationHelper;
 
 class DepositService extends Transaction
 {
-    use ResponseArray;
     use LogHelper;
     use JsonResponse;
     use ValidationHelper;

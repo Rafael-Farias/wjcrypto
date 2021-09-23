@@ -3,21 +3,18 @@
 namespace WjCrypto\Models\Services;
 
 use Money\Money;
-use WjCrypto\Helpers\CryptografyHelper;
+use Monolog\Logger;
 use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\ValidationHelper;
-use WjCrypto\Models\Entities\LegalPersonAccount;
-use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 class TransferService extends Transaction
 {
-    use CryptografyHelper;
-    use ResponseArray;
     use JsonResponse;
     use ValidationHelper;
     use MoneyHelper;
+    use LogHelper;
 
     /**
      *
@@ -33,7 +30,7 @@ class TransferService extends Transaction
 
         $this->createAccountObject($loggedUserAccountNumber);
 
-        $this->validateTransferAmount($this->account, $valueToTransfer);
+        $this->validateTransferAmount($valueToTransfer);
 
         $loggedUserBalance = $this->account->getBalance();
         $newLoggedAccountBalance = $loggedUserBalance->subtract($valueToTransfer);
@@ -44,6 +41,15 @@ class TransferService extends Transaction
         $targetAccountBalance = $this->account->getBalance();
         $targetAccountNewBalance = $targetAccountBalance->add($valueToTransfer);
         $this->updateAccountBalance($targetAccountNewBalance);
+
+        $message = 'Transfer made from account .' .
+            $loggedUserAccountNumber .
+            ' to account ' .
+            $inputedValues['accountNumber'] .
+            ' . Transfer value = ' .
+            $valueToTransfer->getAmount() .
+            ' .';
+        $this->registerLog($message, 'transaction', 'transfer', Logger::INFO);
 
         $this->sendJsonMessage('Transfer executed successfully!', 200);
     }
@@ -67,15 +73,18 @@ class TransferService extends Transaction
     }
 
     /**
-     * @param LegalPersonAccount|NaturalPersonAccount $account
      * @param Money $valueToTransfer
      */
-    private function validateTransferAmount(
-        LegalPersonAccount|NaturalPersonAccount $account,
-        Money $valueToTransfer
-    ): void {
-        $balance = $account->getBalance();
+    private function validateTransferAmount(Money $valueToTransfer): void
+    {
+        $balance = $this->account->getBalance();
         if ($balance->lessThan($valueToTransfer)) {
+            $message = 'Invalid operation. The account ' . $this->account->getAccountNumber()->getAccountNumber() .
+                ' does not have enough amount to make a withdraw.' .
+                '. The account balance is: ' . $balance->getAmount() .
+                ' the transfer value was: ' . $valueToTransfer->getAmount() . '.';
+            $this->registerLog($message, 'transaction', 'transfer', Logger::INFO);
+
             $message = 'Invalid operation. The account does not have enough amount to make this transfer.';
             $this->sendJsonMessage($message, 400);
         }
