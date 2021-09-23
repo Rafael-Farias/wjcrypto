@@ -2,13 +2,20 @@
 
 namespace WjCrypto\Models\Database;
 
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\Address;
 
 class AddressDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -21,9 +28,9 @@ class AddressDatabase extends Database
      * @param string $address
      * @param string $addressComplement
      * @param int $cityId
-     * @return bool|string
+     * @return bool
      */
-    public function insert(string $address, string $addressComplement, int $cityId): bool|string
+    public function insert(string $address, string $addressComplement, int $cityId): bool
     {
         $encryptedAddress = $this->encrypt($address);
         $encryptedAddressComplement = $this->encrypt($addressComplement);
@@ -33,17 +40,21 @@ class AddressDatabase extends Database
             $statement->bindParam(':address', $encryptedAddress);
             $statement->bindParam(':complement', $encryptedAddressComplement);
             $statement->bindParam(':city_id', $cityId, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' . $exception->getMessage(
+                );
+            $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
         }
+        return false;
     }
 
     /**
      * @param string $address
-     * @return Address|string
+     * @return bool|Address
      */
-    public function selectByAddress(string $address)
+    public function selectByAddress(string $address): bool|Address
     {
         $encryptedAddress = $this->encrypt($address);
         try {
@@ -54,21 +65,23 @@ class AddressDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAddressObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectByAddress: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectByAddress: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
         }
+        return false;
     }
 
     /**
      * @param int $id
-     * @return Address|string
+     * @return bool|Address
      */
-    public function selectById(int $id)
+    public function selectById(int $id): bool|Address
     {
         try {
             $sqlQuery = "SELECT * FROM addresses WHERE id=:id;";
@@ -78,12 +91,40 @@ class AddressDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAddressObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectById: ' . $exception->getMessage(
+                );
+            $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+        }
+        return false;
+    }
+
+    /**
+     * @param int $id
+     */
+    public function delete(int $id): void
+    {
+        try {
+            $sqlQuery = "DELETE FROM addresses WHERE id=:id;";
+            $statement = $this->connection->prepare($sqlQuery);
+            $statement->bindParam(':id', $id, PDO::PARAM_INT);
+            $statement->execute();
+        } catch (\PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
+            $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
+            $return = $this->generateResponseArray(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
     }
 

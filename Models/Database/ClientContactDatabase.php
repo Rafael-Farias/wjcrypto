@@ -2,13 +2,20 @@
 
 namespace WjCrypto\Models\Database;
 
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\ClientContact;
 
 class ClientContactDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -21,13 +28,13 @@ class ClientContactDatabase extends Database
      * @param string $telephone
      * @param int|null $legalPersonAccountId
      * @param int|null $naturalPersonAccountId
-     * @return bool|string
+     * @return bool
      */
     public function insert(
         string $telephone,
         int $legalPersonAccountId = null,
         int $naturalPersonAccountId = null
-    ): bool|string {
+    ): bool {
         $encryptedTelephone = $this->encrypt($telephone);
         try {
             $sqlQuery = "INSERT INTO clients_contacts (`legal_person_account_id`, `natural_person_account_id`, `telephone`) VALUES (:legal_person_account_id, :natural_person_account_id, :telephone);";
@@ -35,11 +42,18 @@ class ClientContactDatabase extends Database
             $statement->bindParam(':telephone', $encryptedTelephone);
             $statement->bindParam(':legal_person_account_id', $legalPersonAccountId, PDO::PARAM_INT);
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\ClientContactDatabase\insert: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\ClientContactDatabase\insert: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'ClientContactDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

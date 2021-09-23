@@ -9,4 +9,10 @@ trait JsonResponse
         response()->httpCode($httpResponseCode);
         response()->json($dataArray);
     }
+
+    private function sendJsonMessage(string $message, int $httpResponseCode): void
+    {
+        response()->httpCode($httpResponseCode);
+        response()->json(['message' => $message]);
+    }
 }

@@ -2,13 +2,20 @@
 
 namespace WjCrypto\Models\Database;
 
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\City;
 
 class CityDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -20,9 +27,9 @@ class CityDatabase extends Database
     /**
      * @param string $name
      * @param string $stateInitials
-     * @return bool|string
+     * @return void
      */
-    public function insert(string $name, string $stateInitials): bool|string
+    public function insert(string $name, string $stateInitials): void
     {
         $encryptedName = $this->encrypt($name);
         $encryptedStateInitials = $this->encrypt($stateInitials);
@@ -31,16 +38,23 @@ class CityDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':state_initials', $encryptedStateInitials);
-            return $statement->execute();
+            $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\insert: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\insert: ' . $exception->getMessage();
+            $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
+            $return = $this->generateResponseArray(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
     }
 
     /**
-     * @return City[]|string
+     * @param int $stateId
+     * @return array|bool
      */
-    public function selectAllByState(int $stateId): string|array
+    public function selectAllByState(int $stateId): array|bool
     {
         try {
             $resultArray = [];
@@ -60,16 +74,23 @@ class CityDatabase extends Database
             }
             return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectAllByState: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectAllByState: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
+            $return = $this->generateResponseArray(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
+        return false;
     }
 
     /**
      * @param int $id
-     * @return City|string
+     * @return bool|City
      */
-    public function selectById(int $id): string|City
+    public function selectById(int $id): bool|City
     {
         try {
             $sqlQuery = "SELECT * FROM cities WHERE id=:id;";
@@ -79,13 +100,20 @@ class CityDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createCityObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectById: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectById: ' . $exception->getMessage(
+                );
+            $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

@@ -2,13 +2,20 @@
 
 namespace WjCrypto\Models\Database;
 
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\State;
 
 class StateDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -20,9 +27,8 @@ class StateDatabase extends Database
     /**
      * @param string $name
      * @param string $stateInitials
-     * @return bool|string
      */
-    public function insert(string $name, string $stateInitials): bool|string
+    public function insert(string $name, string $stateInitials): void
     {
         $encryptedName = $this->encrypt($name);
         $encryptedStateInitials = $this->encrypt($stateInitials);
@@ -31,16 +37,22 @@ class StateDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':state_initials', $encryptedStateInitials);
-            return $statement->execute();
+            $statement->execute();
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\insert: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\StateDatabase\insert: ' . $exception->getMessage();
+            $this->registerLog($message, 'database', 'StateDatabase', Logger::ERROR);
+            $return = $this->generateResponseArray(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
     }
 
     /**
-     * @return State[]|string
+     * @return State[]|bool
      */
-    public function selectAll(): array|string
+    public function selectAll(): array|bool
     {
         try {
             $resultArray = [];
@@ -59,15 +71,23 @@ class StateDatabase extends Database
             }
             return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectAll: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectAll: ' . $exception->getMessage(
+                );
+            $this->registerLog($message, 'database', 'StateDatabase', Logger::ERROR);
+            $return = $this->generateResponseArray(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
+            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
+        return false;
     }
 
     /**
      * @param int $id
      * @return State|string
      */
-    public function selectById(int $id): State|string
+    public function selectById(int $id): State|bool
     {
         try {
             $sqlQuery = "SELECT * FROM states where id=:id;";
@@ -77,13 +97,20 @@ class StateDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createStateObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectById: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\StateDatabase\selectById: ' . $exception->getMessage(
+                );
+            $this->registerLog($message, 'database', 'StateDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

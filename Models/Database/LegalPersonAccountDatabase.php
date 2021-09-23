@@ -3,14 +3,19 @@
 namespace WjCrypto\Models\Database;
 
 use DI\Container;
+use Monolog\Logger;
 use PDO;
 use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Models\Entities\LegalPersonAccount;
 
 class LegalPersonAccountDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -26,7 +31,7 @@ class LegalPersonAccountDatabase extends Database
      * @param string $foundationDate
      * @param string $balance
      * @param int $addressId
-     * @return bool|string
+     * @return bool
      */
     public function insert(
         string $name,
@@ -35,7 +40,7 @@ class LegalPersonAccountDatabase extends Database
         string $foundationDate,
         string $balance,
         int $addressId
-    ): bool|string {
+    ): bool {
         $encryptedName = $this->encrypt($name);
         $encryptedCnpj = $this->encrypt($cnpj);
         $encryptedCompanyRegister = $this->encrypt($companyRegister);
@@ -50,18 +55,25 @@ class LegalPersonAccountDatabase extends Database
             $statement->bindParam(':foundation_date', $encryptedFoundationDate);
             $statement->bindParam(':balance', $encryptedBalance);
             $statement->bindParam(':address_id', $addressId);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\insert: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\insert: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'LegalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param string $cnpj
-     * @return LegalPersonAccount|string
+     * @return LegalPersonAccount|bool
      */
-    public function selectByCnpj(string $cnpj): LegalPersonAccount|string
+    public function selectByCnpj(string $cnpj): LegalPersonAccount|bool
     {
         $encryptedCnpj = $this->encrypt($cnpj);
         try {
@@ -72,21 +84,27 @@ class LegalPersonAccountDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectByCnpj: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectByCnpj: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'LegalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param int $id
-     * @return LegalPersonAccount|string
+     * @return LegalPersonAccount|bool
      */
-    public function selectById(int $id): LegalPersonAccount|string
+    public function selectById(int $id): LegalPersonAccount|bool
     {
         try {
             $sqlQuery = "SELECT * FROM legal_person_accounts WHERE id=:id;";
@@ -96,22 +114,28 @@ class LegalPersonAccountDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectById: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\selectById: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'LegalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param string $balance
      * @param int $id
-     * @return bool|string
+     * @return bool
      */
-    public function updateAccountBalance(string $balance, int $id): bool|string
+    public function updateAccountBalance(string $balance, int $id): bool
     {
         $encryptedBalance = $this->encrypt($balance);
         try {
@@ -119,11 +143,18 @@ class LegalPersonAccountDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':balance', $encryptedBalance);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\LegalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'LegalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

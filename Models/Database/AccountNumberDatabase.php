@@ -2,13 +2,20 @@
 
 namespace WjCrypto\Models\Database;
 
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\AccountNumber;
 
 class AccountNumberDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -22,14 +29,13 @@ class AccountNumberDatabase extends Database
      * @param int $accountNumber
      * @param int|null $legalPersonAccountId
      * @param int|null $naturalPersonAccountId
-     * @return bool|string
      */
     public function insert(
         int $userId,
         int $accountNumber,
         int $legalPersonAccountId = null,
         int $naturalPersonAccountId = null
-    ): bool|string {
+    ): bool {
         $encryptedAccountNumber = $this->encrypt($accountNumber);
         try {
             $sqlQuery = "INSERT INTO accounts_number (`user_id`, `account_number`, `legal_person_account_id`, `natural_person_account_id`) VALUES (:user_id, :account_number, :legal_person_account_id, :natural_person_account_id);";
@@ -38,17 +44,24 @@ class AccountNumberDatabase extends Database
             $statement->bindParam(':account_number', $encryptedAccountNumber);
             $statement->bindParam(':legal_person_account_id', $legalPersonAccountId, PDO::PARAM_INT);
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\insert: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\insert: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
-     * @return AccountNumber[]|string|bool
+     * @return AccountNumber[]|bool
      */
-    public function selectAll(): string|array|bool
+    public function selectAll(): bool|array
     {
         try {
             $resultArray = [];
@@ -67,16 +80,22 @@ class AccountNumberDatabase extends Database
             }
             return $resultArray;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectAll: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectAll: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param int $accountNumber
-     * @return AccountNumber|string|false
+     * @return AccountNumber|bool
      */
-    public function selectByAccountNumber(int $accountNumber): AccountNumber|bool|string
+    public function selectByAccountNumber(int $accountNumber): AccountNumber|bool
     {
         $encryptedAccountNumber = $this->encrypt($accountNumber);
         try {
@@ -87,21 +106,27 @@ class AccountNumberDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByAccountNumber: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByAccountNumber: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param int $userId
-     * @return AccountNumber|string|bool
+     * @return AccountNumber|bool
      */
-    public function selectByUserId(int $userId): AccountNumber|bool|string
+    public function selectByUserId(int $userId): AccountNumber|bool
     {
         try {
             $sqlQuery = "SELECT * FROM accounts_number where user_id=:user_id;";
@@ -111,14 +136,20 @@ class AccountNumberDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByUserId: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByUserId: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

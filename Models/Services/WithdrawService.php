@@ -81,7 +81,7 @@ class WithdrawService
 
         $accountNumberDatabase = new AccountNumberDatabase();
         $selectAccountNumberResult = $accountNumberDatabase->selectByAccountNumber($inputedValues['accountNumber']);
-        if (is_string($selectAccountNumberResult) || $selectAccountNumberResult === false) {
+        if ($selectAccountNumberResult === false) {
             $message = 'Error! The account number is invalid.';
             return $this->generateResponseArray($message, 400);
         }
@@ -92,6 +92,10 @@ class WithdrawService
     {
         $accountNumberDatabase = new AccountNumberDatabase();
         $selectAccountNumberResult = $accountNumberDatabase->selectByAccountNumber($inputedValues['accountNumber']);
+        if ($selectAccountNumberResult === false) {
+            $message = 'Error! The account number is invalid.';
+            return $this->generateResponseArray($message, 400);
+        }
 
         $naturalPersonAccountId = $selectAccountNumberResult->getNaturalPersonAccountId();
         $legalPersonAccountId = $selectAccountNumberResult->getLegalPersonAccountId();

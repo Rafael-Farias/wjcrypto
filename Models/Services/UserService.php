@@ -6,6 +6,7 @@ use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\DNSCheckValidation;
 use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
 use Egulias\EmailValidator\Validation\RFCValidation;
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
@@ -15,6 +16,7 @@ use WjCrypto\Models\Entities\User;
 class UserService
 {
     use ResponseArray;
+    use JsonResponse;
 
     public function createUser(): array
     {
@@ -27,9 +29,11 @@ class UserService
         $hash = password_hash($newUserData['password'], PASSWORD_DEFAULT, $hashOptions);
         $userDatabase = new UserDatabase();
         $insertResult = $userDatabase->insert($email, $hash);
-        if (is_string($insertResult)) {
-            return $this->generateResponseArray($insertResult, 500);
-        }
+//        if ($insertResult === false) {
+//            /**
+//             * verificar como tratar esse erro
+//             */
+//        }
         $message = 'User created successfully!';
         return $this->generateResponseArray($message, 201);
     }
@@ -78,10 +82,7 @@ class UserService
     {
         $userDatabase = new UserDatabase();
         $selectUserByIdResult = $userDatabase->selectById($userId);
-        if (is_string($selectUserByIdResult)) {
-            return $this->generateResponseArray($selectUserByIdResult, 400);
-        }
-        if (is_bool($selectUserByIdResult)) {
+        if ($selectUserByIdResult === false) {
             $errorMessage = 'Failed to retrieve the user with ID ' . $userId . ' from the database.';
             return $this->generateResponseArray($errorMessage, 400);
         }
@@ -106,9 +107,11 @@ class UserService
         $userDatabase = new UserDatabase();
 
         $deleteResult = $userDatabase->delete($userId);
-        if (is_string($deleteResult)) {
-            return $this->generateResponseArray($deleteResult, 400);
-        }
+//        if ($deleteResult === false) {
+//            /**
+//             * tratar o erro
+//             */
+//        }
 
         $message = 'User deleted successfully!';
         return $this->generateResponseArray($message, 200);
@@ -125,9 +128,11 @@ class UserService
         $hash = password_hash($newUserData['password'], PASSWORD_DEFAULT, $hashOptions);
         $userDatabase = new UserDatabase();
         $insertResult = $userDatabase->update($email, $hash, $userId);
-        if (is_string($insertResult)) {
-            return $this->generateResponseArray($insertResult, 500);
-        }
+//        if ($insertResult === false) {
+//            /**
+//             * tratar o erro
+//             */
+//        }
         $message = 'User updated successfully!';
         return $this->generateResponseArray($message, 201);
     }
@@ -176,7 +181,12 @@ class UserService
         $userId = $authMiddleware->getUserId();
 
         $accountDatabase = new AccountNumberDatabase();
-        return $accountDatabase->selectByUserId($userId)->getAccountNumber();
+        $accountNumber = $accountDatabase->selectByUserId($userId);
+        if ($accountNumber === false) {
+            $message = 'Error! The logged user does not have a account.';
+            $this->sendJsonMessage($message, 400);
+        }
+        return $accountNumber->getAccountNumber();
     }
 
 }

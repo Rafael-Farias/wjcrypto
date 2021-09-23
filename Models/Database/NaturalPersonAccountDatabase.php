@@ -3,13 +3,20 @@
 namespace WjCrypto\Models\Database;
 
 use DI\Container;
+use Monolog\Logger;
 use PDO;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 class NaturalPersonAccountDatabase extends Database
 {
     use CryptografyHelper;
+    use LogHelper;
+    use ResponseArray;
+    use JsonResponse;
 
     private PDO $connection;
 
@@ -25,7 +32,7 @@ class NaturalPersonAccountDatabase extends Database
      * @param string $birthDate
      * @param string $balance
      * @param int $addressId
-     * @return bool|string
+     * @return bool
      */
     public function insert(
         string $name,
@@ -34,7 +41,7 @@ class NaturalPersonAccountDatabase extends Database
         string $birthDate,
         string $balance,
         int $addressId
-    ): bool|string {
+    ): bool {
         $encryptedName = $this->encrypt($name);
         $encryptedCpf = $this->encrypt($cpf);
         $encryptedRg = $this->encrypt($rg);
@@ -52,16 +59,22 @@ class NaturalPersonAccountDatabase extends Database
             $statement->execute();
             return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\insert: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\insert: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param int $id
-     * @return NaturalPersonAccount|string
+     * @return NaturalPersonAccount|bool
      */
-    public function selectById(int $id): string|NaturalPersonAccount
+    public function selectById(int $id): NaturalPersonAccount|bool
     {
         try {
             $sqlQuery = "SELECT * FROM natural_person_accounts WHERE id=:id;";
@@ -71,21 +84,27 @@ class NaturalPersonAccountDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectById: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectById: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**
      * @param string $cpf
-     * @return NaturalPersonAccount|string
+     * @return bool|NaturalPersonAccount
      */
-    public function selectByCpf(string $cpf): string|NaturalPersonAccount
+    public function selectByCpf(string $cpf): bool|NaturalPersonAccount
     {
         $encryptedCpf = $this->encrypt($cpf);
         try {
@@ -96,17 +115,28 @@ class NaturalPersonAccountDatabase extends Database
             $statement->setFetchMode(PDO::FETCH_ASSOC);
             $row = $statement->fetch();
             if ($row === false) {
-                return $row;
+                return false;
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectByCpf: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectByCpf: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
-    public function updateAccountBalance(string $balance, int $id): bool|string
+    /**
+     * @param string $balance
+     * @param int $id
+     * @return bool
+     */
+    public function updateAccountBalance(string $balance, int $id): bool
     {
         $encryptedBalance = $this->encrypt($balance);
         try {
@@ -114,11 +144,18 @@ class NaturalPersonAccountDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':balance', $encryptedBalance);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
-            return 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
                 );
+            $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
+                'An error occurred while processing your request. Contact the system administrator.',
+                500
+            );
         }
+        return false;
     }
 
     /**

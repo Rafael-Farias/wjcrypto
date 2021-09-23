@@ -3,7 +3,6 @@
 namespace WjCrypto\Controllers;
 
 use WjCrypto\Helpers\JsonResponse;
-use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Services\DepositService;
 use WjCrypto\Models\Services\TransferService;
 use WjCrypto\Models\Services\WithdrawService;
@@ -15,10 +14,7 @@ class TransactionsController
     public function deposit()
     {
         $depositService = new DepositService();
-        $depositResult = $depositService->makeDepositIntoAccount();
-        if (is_array($depositResult)) {
-            $this->sendJsonResponse($depositResult['message'], $depositResult['httpResponseCode']);
-        }
+        $depositService->makeDepositIntoAccount();
     }
 
     public function withdraw()
@@ -33,9 +29,6 @@ class TransactionsController
     public function transfer()
     {
         $transferService = new TransferService();
-        $transferResult = $transferService->transfer();
-        if (is_array($transferResult)) {
-            $this->sendJsonResponse($transferResult['message'], $transferResult['httpResponseCode']);
-        }
+        $transferService->transfer();
     }
 }

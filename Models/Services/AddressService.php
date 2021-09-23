@@ -2,6 +2,7 @@
 
 namespace WjCrypto\Models\Services;
 
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\SanitizeString;
 use WjCrypto\Models\Database\AddressDatabase;
@@ -11,28 +12,30 @@ use WjCrypto\Models\Entities\Address;
 
 class AddressService
 {
-    use ResponseArray, SanitizeString;
+    use ResponseArray;
+    use SanitizeString;
+    use JsonResponse;
 
     /**
      * @param string $state
      * @param string $city
      * @param string $address
      * @param string $addressComplement
-     * @return Address | array
+     * @return bool
      */
     public function persistAddress(
         string $state,
         string $city,
         string $address,
         string $addressComplement
-    ): Address {
+    ): bool {
         $state = $this->sanitizeString($state);
         $city = $this->sanitizeString($city);
 
         $stateDatabase = new StateDatabase();
         $statesInDatabase = $stateDatabase->selectAll();
-        if (is_string($statesInDatabase)) {
-            return $this->generateResponseArray($statesInDatabase, 500);
+        if ($statesInDatabase === false) {
+            $this->sendJsonMessage('Error! Could not find the specified state.', 400);
         }
         $stateId = 0;
 
@@ -44,8 +47,8 @@ class AddressService
         }
         $cityDatabase = new CityDatabase();
         $selectedCitiesByStateId = $cityDatabase->selectAllByState($stateId);
-        if (is_string($selectedCitiesByStateId)) {
-            return $this->generateResponseArray($selectedCitiesByStateId, 500);
+        if ($selectedCitiesByStateId === false) {
+            $this->sendJsonMessage('Error! Could not find the specified city in the database.', 400);
         }
         $cityId = 0;
 
@@ -57,22 +60,34 @@ class AddressService
         }
 
         $addressDatabase = new AddressDatabase();
-        $persistAddressResult = $addressDatabase->insert(
+        return $addressDatabase->insert(
             $address,
             $addressComplement,
             $cityId
         );
+    }
 
-        if (is_string($persistAddressResult)) {
-            return $this->generateResponseArray($persistAddressResult, 500);
+    /**
+     * @param string $addressName
+     * @return Address
+     */
+    public function selectAddressByAddressName(string $addressName): Address
+    {
+        $addressDatabase = new AddressDatabase();
+        $selectResult = $addressDatabase->selectByAddress($addressName);
+        if ($selectResult === false) {
+            $this->sendJsonMessage('Address not found in the database', 400);
         }
+        return $selectResult;
+    }
 
-        $addressInDatabase = $addressDatabase->selectByAddress($address);
-        if (is_string($addressInDatabase)) {
-            return $this->generateResponseArray($addressInDatabase, 500);
-        }
-
-        return $addressInDatabase;
+    /**
+     * @param int $addressId
+     */
+    public function deleteAddress(int $addressId): void
+    {
+        $addressDatabase = new AddressDatabase();
+        $addressDatabase->delete($addressId);
     }
 
 }

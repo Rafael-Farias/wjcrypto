@@ -3,12 +3,14 @@
 namespace WjCrypto\Config;
 
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\StateDatabase;
 
 class ConfigureCitiesAndStates
 {
     use CryptografyHelper;
+    use ResponseArray;
 
     public function persistCitiesAndStates()
     {

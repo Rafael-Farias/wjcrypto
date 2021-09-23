@@ -6,9 +6,8 @@ use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 use Money\Money;
 use Money\Parser\IntlLocalizedDecimalParser;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use WjCrypto\Helpers\CryptografyHelper;
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Entities\LegalPersonAccount;
@@ -18,46 +17,48 @@ class TransferService
 {
     use CryptografyHelper;
     use ResponseArray;
+    use JsonResponse;
 
-    public function transfer(): array
+    /**
+     *
+     */
+    public function transfer(): void
     {
         $inputedValues = input()->all();
-        $result = $this->validateTransferData($inputedValues);
-        if (is_array($result)) {
-            return $result;
-        }
+        $this->validateTransferData($inputedValues);
+
         $userService = new UserService();
         $loggedUserAccountNumber = $userService->getLoggedUserAccountNumber();
+
         $loggedUserAccount = $this->createAccountObject($loggedUserAccountNumber);
         $valueToTransfer = $this->parseMoneyObject($inputedValues['transferValue']);
 
-        $transferValidationResult = $this->validateTransferAmount($loggedUserAccount['account'], $valueToTransfer);
-        if (is_array($transferValidationResult)) {
-            return $transferValidationResult;
-        }
+        $this->validateTransferAmount($loggedUserAccount['account'], $valueToTransfer);
+
         $loggedUserBalance = $loggedUserAccount['account']->getBalance();
         $newLoggedAccountBalance = $loggedUserBalance->subtract($valueToTransfer);
-        $updateBalanceResult = $this->updateAccountBalance(
+        $this->updateAccountBalance(
             $loggedUserAccount['account'],
             $loggedUserAccount['accountService'],
             $newLoggedAccountBalance
         );
-        if ($updateBalanceResult['httpResponseCode'] === 400) {
-            return $updateBalanceResult;
-        }
 
         $destinyAccount = $this->createAccountObject($inputedValues['accountNumber']);
 
         $destinyAccountBalance = $destinyAccount['account']->getBalance();
         $newDestinyAccountBalance = $destinyAccountBalance->add($valueToTransfer);
-        return $this->updateAccountBalance(
+        $this->updateAccountBalance(
             $destinyAccount['account'],
             $destinyAccount['accountService'],
             $newDestinyAccountBalance
         );
+        $this->sendJsonMessage('Transfer executed successfully!', 200);
     }
 
-    private function validateTransferData(array $inputedValues): ?array
+    /**
+     * @param array $inputedValues
+     */
+    private function validateTransferData(array $inputedValues): void
     {
         $requiredFields = [
             'accountNumber',
@@ -69,25 +70,25 @@ class TransferService
 
         if ($numberOfInputedFields !== $numberOfRequiredFields) {
             $message = 'Error! Invalid number of fields. Please only enter the required fields: accountNumber and transferValue.';
-            return $this->generateResponseArray($message, 400);
+            $this->sendJsonMessage($message, 400);
         }
 
         foreach ($requiredFields as $requiredField) {
             $isRequiredFieldInRequest = array_key_exists($requiredField, $inputedValues);
             if ($isRequiredFieldInRequest === false) {
                 $message = 'Error! The field ' . $requiredField . ' does not exists in the payload.';
-                return $this->generateResponseArray($message, 400);
+                $this->sendJsonMessage($message, 400);
             }
         }
 
         foreach ($inputedValues as $key => $field) {
             if (empty($field)) {
                 $message = 'Error! The field ' . $key . ' is empty.';
-                return $this->generateResponseArray($message, 400);
+                $this->sendJsonMessage($message, 400);
             }
             if (is_string($field) === false) {
                 $message = 'Error! The field ' . $key . ' is not a string.';
-                return $this->generateResponseArray($message, 400);
+                $this->sendJsonMessage($message, 400);
             }
         }
 
@@ -95,14 +96,14 @@ class TransferService
         $regexResult = preg_match($moneyRegex, $inputedValues['transferValue']);
         if ($regexResult === 0) {
             $message = 'Error! The field transferValue has a invalid money format. Use the following format: xxx.xxx,xx';
-            return $this->generateResponseArray($message, 400);
+            $this->sendJsonMessage($message, 400);
         }
 
         $accountNumberDatabase = new AccountNumberDatabase();
         $selectAccountNumberResult = $accountNumberDatabase->selectByAccountNumber($inputedValues['accountNumber']);
-        if (is_string($selectAccountNumberResult) || $selectAccountNumberResult === false) {
+        if ($selectAccountNumberResult === false) {
             $message = 'Error! The account number is invalid.';
-            return $this->generateResponseArray($message, 400);
+            $this->sendJsonMessage($message, 400);
         }
 
         $destinyAccountNumber = $selectAccountNumberResult->getAccountNumber();
@@ -111,16 +112,22 @@ class TransferService
 
         if ($destinyAccountNumber === $loggedUserAccountNumber) {
             $message = 'Error! The destiny account must be different from the origin account.';
-            return $this->generateResponseArray($message, 400);
+            $this->sendJsonMessage($message, 400);
         }
-
-        return null;
     }
 
-    private function createAccountObject(int $accountNumber): ?array
+    /**
+     * @param int $accountNumber
+     * @return array
+     */
+    private function createAccountObject(int $accountNumber): array
     {
         $accountNumberDatabase = new AccountNumberDatabase();
         $selectAccountNumberResult = $accountNumberDatabase->selectByAccountNumber($accountNumber);
+        if ($selectAccountNumberResult === false) {
+            $message = 'Error! The account number is invalid.';
+            $this->sendJsonMessage($message, 400);
+        }
 
         $naturalPersonAccountId = $selectAccountNumberResult->getNaturalPersonAccountId();
         $legalPersonAccountId = $selectAccountNumberResult->getLegalPersonAccountId();
@@ -133,54 +140,43 @@ class TransferService
                 'accountService' => $accountService
             ];
         }
-        if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
-            $accountService = new legalPersonAccountService();
-            $account = $accountService->generateLegalPersonAccountObject($accountNumber);
-            return [
-                'account' => $account,
-                'accountService' => $accountService
-            ];
-        }
-        return null;
+
+        $accountService = new legalPersonAccountService();
+        $account = $accountService->generateLegalPersonAccountObject($accountNumber);
+        return [
+            'account' => $account,
+            'accountService' => $accountService
+        ];
     }
 
     /**
      * @param LegalPersonAccount|NaturalPersonAccount $account
      * @param Money $valueToTransfer
-     * @return array|null
      */
     private function validateTransferAmount(
         LegalPersonAccount|NaturalPersonAccount $account,
         Money $valueToTransfer
-    ): ?array {
+    ): void {
         $balance = $account->getBalance();
         if ($balance->lessThan($valueToTransfer)) {
             $message = 'Invalid operation. The account does not have enough amount to make this transfer.';
-            return $this->generateResponseArray($message, 400);
+            $this->sendJsonMessage($message, 400);
         }
-        return null;
     }
 
     /**
      * @param NaturalPersonAccount|LegalPersonAccount $account
      * @param NaturalPersonAccountService|legalPersonAccountService $accountService
      * @param Money $newBalance
-     * @return array
      */
     private function updateAccountBalance(
         NaturalPersonAccount|LegalPersonAccount $account,
         NaturalPersonAccountService|legalPersonAccountService $accountService,
         Money $newBalance
-    ): array {
+    ): void {
         $accountId = $account->getId();
 
-        $result = $accountService->updateBalance($newBalance->getAmount(), $accountId);
-        if ($result === false) {
-            $message = 'Error!';
-            return $this->generateResponseArray($message, 400);
-        }
-        $message = 'Success!';
-        return $this->generateResponseArray($message, 200);
+        $accountService->updateBalance($newBalance->getAmount(), $accountId);
     }
 
     private function parseMoneyObject(string $value): Money
@@ -189,12 +185,5 @@ class TransferService
         $numberFormatter = new \NumberFormatter('pt-BR', \NumberFormatter::DECIMAL);
         $moneyParser = new IntlLocalizedDecimalParser($numberFormatter, $currencies);
         return $moneyParser->parse($value, new Currency('BRL'));
-    }
-
-    private function registerLog(string $message)
-    {
-        $logger = new Logger('login');
-        $logger->pushHandler(new StreamHandler(__DIR__ . '/../../Logs/transaction.log', Logger::INFO));
-        $logger->info($message);
     }
 }
