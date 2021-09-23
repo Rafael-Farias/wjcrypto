@@ -39,15 +39,15 @@ class UserDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':email', $encryptedEmail);
             $statement->bindParam(':password', $encryptedPassword);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\insert: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }
@@ -77,11 +77,10 @@ class UserDatabase extends Database
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage(
                 );
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }
@@ -105,13 +104,13 @@ class UserDatabase extends Database
             $decryptedArray = $this->decryptArray($row);
             return $this->createUserObject($decryptedArray);
         } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage();
+            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage(
+                );
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }
@@ -126,15 +125,15 @@ class UserDatabase extends Database
             $sqlQuery = "DELETE FROM users WHERE id=:id;";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }
@@ -155,15 +154,15 @@ class UserDatabase extends Database
             $statement->bindParam(':email', $encryptedEmail);
             $statement->bindParam(':password', $encryptedPassword);
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
-            return $statement->execute();
+            $statement->execute();
+            return true;
         } catch (\PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\update: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }

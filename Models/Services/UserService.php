@@ -8,6 +8,7 @@ use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
 use Egulias\EmailValidator\Validation\RFCValidation;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\ResponseArray;
+use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Database\UserDatabase;
@@ -17,10 +18,15 @@ class UserService
 {
     use ResponseArray;
     use JsonResponse;
+    use ValidationHelper;
 
-    public function createUser(): array
+    /**
+     *
+     */
+    public function createUser(): void
     {
         $newUserData = input()->all();
+        $this->validateNewUserData($newUserData);
 
         $email = $newUserData['email'];
         $hashOptions = [
@@ -28,23 +34,20 @@ class UserService
         ];
         $hash = password_hash($newUserData['password'], PASSWORD_DEFAULT, $hashOptions);
         $userDatabase = new UserDatabase();
-        $insertResult = $userDatabase->insert($email, $hash);
-//        if ($insertResult === false) {
-//            /**
-//             * verificar como tratar esse erro
-//             */
-//        }
-        $message = 'User created successfully!';
-        return $this->generateResponseArray($message, 201);
+        $userDatabase->insert($email, $hash);
+
+        $this->sendJsonMessage('User created successfully!', 201);
     }
 
-    public function validateUserData(): ?array
+    /**
+     * @param array $newUserData
+     */
+    private function validateNewUserData(array $newUserData): void
     {
         $requiredFields = ['email', 'password'];
-        if (input()->exists($requiredFields) === false) {
-            $errorMessage = 'Error! One or more missing fields.';
-            return $this->generateResponseArray($errorMessage, 400);
-        }
+
+        $this->validateInput($requiredFields, $newUserData);
+
         $validator = new EmailValidator();
         $multipleValidations = new MultipleValidationWithAnd([
             new RFCValidation(),
@@ -53,24 +56,31 @@ class UserService
         $email = input('email');
         if ($validator->isValid($email, $multipleValidations) === false) {
             $errorMessage = 'Error! Invalid email.';
-            return $this->generateResponseArray($errorMessage, 400);
+            $this->sendJsonMessage($errorMessage, 400);
         }
 
         $userDatabase = new UserDatabase();
         $usersArray = $userDatabase->selectAll();
-        foreach ($usersArray as $user) {
-            if ($user->getEmail() === $email) {
-                $errorMessage = 'Error! The email ' . $email . ' is already in use.';
-                return $this->generateResponseArray($errorMessage, 400);
+        if ($usersArray !== false) {
+            foreach ($usersArray as $user) {
+                if ($user->getEmail() === $email) {
+                    $errorMessage = 'Error! The email ' . $email . ' is already in use.';
+                    $this->sendJsonMessage($errorMessage, 400);
+                }
             }
         }
-        return null;
     }
 
+    /**
+     * @return array
+     */
     public function getAllUsers(): array
     {
         $userDatabase = new UserDatabase();
         $usersArray = $userDatabase->selectAll();
+        if ($usersArray === false) {
+            $this->sendJsonMessage('There is no registered user on the system.', 200);
+        }
         $usersJsonArray = [];
         foreach ($usersArray as $user) {
             $usersJsonArray[] = $user->getUserData();
@@ -78,48 +88,83 @@ class UserService
         return $this->generateResponseArray($usersJsonArray, 200);
     }
 
-    public function getUser(int $userId): array
+    /**
+     * @param int $userId
+     * @return array
+     */
+    public function getUserData(int $userId): array
     {
+        $this->validateUserId($userId);
         $userDatabase = new UserDatabase();
         $selectUserByIdResult = $userDatabase->selectById($userId);
         if ($selectUserByIdResult === false) {
             $errorMessage = 'Failed to retrieve the user with ID ' . $userId . ' from the database.';
-            return $this->generateResponseArray($errorMessage, 400);
+            $this->sendJsonMessage($errorMessage, 400);
         }
-        return $this->generateResponseArray($selectUserByIdResult, 200);
+        $userData = $selectUserByIdResult->getUserData();
+        return $this->generateResponseArray($userData, 200);
     }
 
-    public function validateUserId(int $userId): ?array
+    /**
+     * @param int $userId
+     * @return User
+     */
+    public function getUser(int $userId): User
+    {
+        $this->validateUserId($userId);
+        $userDatabase = new UserDatabase();
+        $user = $userDatabase->selectById($userId);
+        if ($user === false) {
+            $errorMessage = 'Failed to retrieve the user with ID ' . $userId . ' from the database.';
+            $this->sendJsonMessage($errorMessage, 400);
+        }
+        return $user;
+    }
+
+    /**
+     * @param int $userId
+     * @return bool
+     */
+    private function validateUserId(int $userId): bool
     {
         $userDatabase = new UserDatabase();
         $usersArray = $userDatabase->selectAll();
+        if ($usersArray === false) {
+            $this->sendJsonMessage('There is no registered user on the system.', 200);
+        }
         foreach ($usersArray as $user) {
             if ($user->getId() === $userId) {
-                return null;
+                return true;
             }
         }
         $errorMessage = 'Error! The User ID ' . $userId . ' does not exist in the database.';
-        return $this->generateResponseArray($errorMessage, 400);
+        $this->sendJsonMessage($errorMessage, 400);
+        return false;
     }
 
-    public function deleteUser(int $userId): array
+    /**
+     * @param int $userId
+     */
+    public function deleteUser(int $userId): void
     {
+        $this->validateUserId($userId);
         $userDatabase = new UserDatabase();
 
         $deleteResult = $userDatabase->delete($userId);
-//        if ($deleteResult === false) {
-//            /**
-//             * tratar o erro
-//             */
-//        }
-
-        $message = 'User deleted successfully!';
-        return $this->generateResponseArray($message, 200);
+        if ($deleteResult === false) {
+            $this->sendJsonMessage('Error! User could not be deleted.', 500);
+        }
+        $this->sendJsonMessage('User deleted successfully!', 200);
     }
 
-    public function updateUser(int $userId): array
+    /**
+     * @param int $userId
+     */
+    public function updateUser(int $userId): void
     {
+        $this->validateUserId($userId);
         $newUserData = input()->all();
+        $this->validateNewUserData($newUserData);
 
         $email = $newUserData['email'];
         $hashOptions = [
@@ -128,26 +173,56 @@ class UserService
         $hash = password_hash($newUserData['password'], PASSWORD_DEFAULT, $hashOptions);
         $userDatabase = new UserDatabase();
         $insertResult = $userDatabase->update($email, $hash, $userId);
-//        if ($insertResult === false) {
-//            /**
-//             * tratar o erro
-//             */
-//        }
-        $message = 'User updated successfully!';
-        return $this->generateResponseArray($message, 201);
+        if ($insertResult === false) {
+            $this->sendJsonMessage('Error! Could not update the user.', 200);
+        }
+        $this->sendJsonMessage('User updated successfully!', 201);
     }
 
     /**
-     * @return array|User
+     * @param string $email
+     * @param string $password
+     * @return User
      */
-    public function validateEmailAndPasswordThenMatchesPersistedUser(): User|array
+    public function getUserByEmailAndPassword(string $email, string $password): User
     {
-        $email = $_SERVER['PHP_AUTH_USER'];
-        $password = $_SERVER['PHP_AUTH_PW'];
+        $this->validateEmailAndPassword($email, $password);
 
-        if (is_null($password)) {
+        $foundUser = null;
+
+        $userDatabase = new UserDatabase();
+        $usersArray = $userDatabase->selectAll();
+        if ($usersArray === false) {
+            $this->sendJsonMessage('There is no user registered.', 200);
+        }
+        foreach ($usersArray as $user) {
+            if ($user->getEmail() === $email) {
+                $isPasswordCorrect = password_verify($password, $user->getPassword());
+                if ($isPasswordCorrect) {
+                    $foundUser = $user;
+                }
+            }
+        }
+        $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
+        $this->sendJsonMessage($errorMessage, 400);
+        
+        return $foundUser;
+    }
+
+    /**
+     * @param string $email
+     * @param string $password
+     */
+    private function validateEmailAndPassword(string $email, string $password): void
+    {
+        if (is_string($email) === false || is_string($password) === false) {
+            $errorMessage = 'Error! The fields must be string type.';
+            $this->sendJsonMessage($errorMessage, 400);
+        }
+
+        if (empty($password) || empty($email)) {
             $errorMessage = 'Error! Invalid email or password.';
-            return $this->generateResponseArray($errorMessage, 400);
+            $this->sendJsonMessage($errorMessage, 400);
         }
 
         $validator = new EmailValidator();
@@ -158,23 +233,13 @@ class UserService
 
         if ($validator->isValid($email, $multipleValidations) === false) {
             $errorMessage = 'Error! Invalid email or password.';
-            return $this->generateResponseArray($errorMessage, 400);
+            $this->sendJsonMessage($errorMessage, 400);
         }
-
-        $userDatabase = new UserDatabase();
-        $usersArray = $userDatabase->selectAll();
-        foreach ($usersArray as $user) {
-            if ($user->getEmail() === $email) {
-                $isPasswordCorrect = password_verify($password, $user->getPassword());
-                if ($isPasswordCorrect) {
-                    return $user;
-                }
-            }
-        }
-        $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
-        return $this->generateResponseArray($errorMessage, 400);
     }
 
+    /**
+     * @return int
+     */
     public function getLoggedUserAccountNumber(): int
     {
         $authMiddleware = new AuthMiddleware();

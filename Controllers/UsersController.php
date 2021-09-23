@@ -12,14 +12,7 @@ class UsersController
     public function create(): void
     {
         $userService = new UserService();
-        $validationReturn = $userService->validateUserData();
-
-        if ($validationReturn !== null) {
-            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
-        }
-
-        $insertResult = $userService->createUser();
-        $this->sendJsonResponse($insertResult['message'], $insertResult['httpResponseCode']);
+        $userService->createUser();
     }
 
     public function showAll(): void
@@ -32,41 +25,20 @@ class UsersController
     public function show(int $userId): void
     {
         $userService = new UserService();
-        $validationReturn = $userService->validateUserId($userId);
-        if ($validationReturn !== null) {
-            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
-        }
-
-        $getUserResult = $userService->getUser($userId);
-        $userData = $getUserResult['message']->getUserData();
-        $this->sendJsonResponse($userData, $getUserResult['httpResponseCode']);
+        $getUserResult = $userService->getUserData($userId);
+        $this->sendJsonResponse($getUserResult['message'], $getUserResult['httpResponseCode']);
     }
 
     public function delete(int $userId): void
     {
         $userService = new UserService();
-        $validationReturn = $userService->validateUserId($userId);
-        if ($validationReturn !== null) {
-            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
-        }
-
-        $deleteUserResult = $userService->deleteUser($userId);
-        $this->sendJsonResponse($deleteUserResult['message'], $deleteUserResult['httpResponseCode']);
+        $userService->deleteUser($userId);
     }
 
     public function update(int $userId): void
     {
         $userService = new UserService();
-        $validationReturn = $userService->validateUserId($userId);
-        if ($validationReturn !== null) {
-            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
-        }
-        $validationReturn = $userService->validateUserData();
-        if ($validationReturn !== null) {
-            $this->sendJsonResponse($validationReturn['message'], $validationReturn['httpResponseCode']);
-        }
-        $updateResult = $userService->updateUser($userId);
-        $this->sendJsonResponse($updateResult['message'], $updateResult['httpResponseCode']);
+        $userService->updateUser($userId);
     }
 
 

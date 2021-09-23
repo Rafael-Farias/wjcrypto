@@ -13,18 +13,12 @@ class AccountController
     public function createNaturalPersonAccount()
     {
         $naturalPersonService = new NaturalPersonAccountService();
-        $createResult = $naturalPersonService->createAccount();
-        if (is_array($createResult)) {
-            $this->sendJsonResponse($createResult['message'], $createResult['httpResponseCode']);
-        }
+        $naturalPersonService->createAccount();
     }
 
     public function createLegalPersonAccount()
     {
         $legalPersonService = new legalPersonAccountService();
-        $createResult = $legalPersonService->createAccount();
-        if (is_array($createResult)) {
-            $this->sendJsonResponse($createResult['message'], $createResult['httpResponseCode']);
-        }
+        $legalPersonService->createAccount();
     }
 }

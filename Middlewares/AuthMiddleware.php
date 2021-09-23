@@ -44,21 +44,18 @@ class AuthMiddleware implements IMiddleware
             switch ($basicAuthRegexMatchResult) {
                 case 1:
                     $userService = new UserService();
-                    $validationResult = $userService->validateEmailAndPasswordThenMatchesPersistedUser();
-                    if (is_array($validationResult)) {
-                        $this->sendJsonResponse($validationResult['message'], $validationResult['httpResponseCode']);
-                    }
-                    $jwt = $this->encodeJwt($validationResult);
-                    $this->registerLog('User ' . $validationResult->getEmail() . ' logged in.');
+                    $email = $_SERVER['PHP_AUTH_USER'];
+                    $password = $_SERVER['PHP_AUTH_PW'];
+                    $user = $userService->getUserByEmailAndPassword($email, $password);
+
+                    $jwt = $this->encodeJwt($user);
+                    $this->registerLog('User ' . $user->getEmail() . ' logged in.');
                     $this->sendJsonResponse($jwt, 200);
                     break;
 
                 case 0:
                     response()->header('WWW-Authenticate: Basic realm="WjCrypto"');
-                    $response = [
-                        'message' => 'Error! The authorization header is incorrect.'
-                    ];
-                    $this->sendJsonResponse($response, 401);
+                    $this->sendJsonMessage('Error! The authorization header is incorrect.', 401);
                     break;
             }
         }
@@ -89,8 +86,8 @@ class AuthMiddleware implements IMiddleware
 
                 $userService = new UserService();
                 $user = $userService->getUser($token->id);
-                $newJwt = $this->encodeJwt($user['message']);
-                $this->registerLog('User ' . $user['message']->getEmail() . ' updated the JWT Token.');
+                $newJwt = $this->encodeJwt($user);
+                $this->registerLog('User ' . $user->getEmail() . ' updated the JWT Token.');
                 response()->header('updated-token: ' . $newJwt['jwt']);
                 break;
 

@@ -3,19 +3,20 @@
 namespace WjCrypto\Config;
 
 use WjCrypto\Helpers\CryptografyHelper;
-use WjCrypto\Helpers\ResponseArray;
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\StateDatabase;
 
 class ConfigureCitiesAndStates
 {
     use CryptografyHelper;
-    use ResponseArray;
+    use JsonResponse;
 
     public function persistCitiesAndStates()
     {
         $this->persistStates();
         $this->persistCities();
+        $this->sendJsonMessage('Successfully inserted the cities and states!', 200);
     }
 
     private function persistCities()

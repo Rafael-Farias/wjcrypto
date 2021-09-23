@@ -20,10 +20,7 @@ class TransactionsController
     public function withdraw()
     {
         $withdrawService = new WithdrawService();
-        $withdrawResult = $withdrawService->withdrawFromAccount();
-        if (is_array($withdrawResult)) {
-            $this->sendJsonResponse($withdrawResult['message'], $withdrawResult['httpResponseCode']);
-        }
+        $withdrawService->withdrawFromAccount();
     }
 
     public function transfer()
