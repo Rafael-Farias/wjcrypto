@@ -6,7 +6,7 @@ class AccountNumber
 {
     private int $id;
     private int $user_id;
-    private int $account_number;
+    private string $account_number;
     private $natural_person_account_id;
     private $legal_person_account_id;
     private string $creation_timestamp;
@@ -45,17 +45,17 @@ class AccountNumber
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getAccountNumber(): int
+    public function getAccountNumber(): string
     {
         return $this->account_number;
     }
 
     /**
-     * @param int $account_number
+     * @param string $account_number
      */
-    public function setAccountNumber(int $account_number): void
+    public function setAccountNumber(string $account_number): void
     {
         $this->account_number = $account_number;
     }

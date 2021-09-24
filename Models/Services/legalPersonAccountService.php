@@ -206,7 +206,7 @@ class legalPersonAccountService
      */
     private function generateAccountNumber(string $userId): string
     {
-        $legalPersonIdentifier = '02';
+        $legalPersonIdentifier = '2';
         $accountNumberDatabase = new AccountNumberDatabase();
         $allAccounts = $accountNumberDatabase->selectAll();
         if ($allAccounts === false) {

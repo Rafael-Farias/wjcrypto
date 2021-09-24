@@ -26,13 +26,14 @@ class AccountNumberDatabase extends Database
 
     /**
      * @param int $userId
-     * @param int $accountNumber
+     * @param string $accountNumber
      * @param int|null $legalPersonAccountId
      * @param int|null $naturalPersonAccountId
+     * @return bool
      */
     public function insert(
         int $userId,
-        int $accountNumber,
+        string $accountNumber,
         int $legalPersonAccountId = null,
         int $naturalPersonAccountId = null
     ): bool {

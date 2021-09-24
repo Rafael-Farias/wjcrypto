@@ -196,7 +196,7 @@ class NaturalPersonAccountService
      */
     private function generateAccountNumber(string $userId): string
     {
-        $naturalPersonIdentifier = '01';
+        $naturalPersonIdentifier = '1';
         $accountNumberDatabase = new AccountNumberDatabase();
         $allAccounts = $accountNumberDatabase->selectAll();
         if ($allAccounts === false) {
