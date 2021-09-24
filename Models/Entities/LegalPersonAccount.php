@@ -244,5 +244,26 @@ class LegalPersonAccount
         $this->update_timestamp = $update_timestamp;
     }
 
+    /**
+     * @return array
+     */
+    public function getAccountData(): array
+    {
+        $balance = $this->balance->getAmount();
+        $decimal = substr($balance, -2);
+        $integer = substr($balance, 0, -2);
+        $stringBalance = $integer . '.' . $decimal;
 
+        return [
+            'name' => $this->name,
+            'cnpj' => $this->cnpj,
+            'company_register' => $this->company_register,
+            'foundation_date' => $this->foundation_date,
+            'balance' => number_format((float)$stringBalance, 2, ',', '.'),
+            'address' => $this->address->getAddress(),
+            'city' => $this->city->getName(),
+            'state' => $this->state->getName(),
+            'accountNumber' => $this->accountNumber->getAccountNumber()
+        ];
+    }
 }

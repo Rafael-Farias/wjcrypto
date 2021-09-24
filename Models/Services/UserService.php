@@ -157,11 +157,12 @@ class UserService
         $this->sendJsonMessage('User deleted successfully!', 200);
     }
 
-    /**
-     * @param int $userId
-     */
-    public function updateUser(int $userId): void
+
+    public function updateUser(): void
     {
+        $authMiddleware = new AuthMiddleware();
+        $userId = $authMiddleware->getUserId();
+
         $this->validateUserId($userId);
         $newUserData = input()->all();
         $this->validateNewUserData($newUserData);
@@ -249,6 +250,14 @@ class UserService
             $this->sendJsonMessage($message, 400);
         }
         return $accountNumber->getAccountNumber();
+    }
+
+    public function getLoggedUserAccountData()
+    {
+        $accountNumber = $this->getLoggedUserAccountNumber();
+        $transaction = new Transaction();
+        $account = $transaction->getLoggedUserAccount($accountNumber);
+        return $this->generateResponseArray($account->getAccountData(), 200);
     }
 
 }

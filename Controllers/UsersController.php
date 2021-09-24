@@ -35,10 +35,10 @@ class UsersController
         $userService->deleteUser($userId);
     }
 
-    public function update(int $userId): void
+    public function update(): void
     {
         $userService = new UserService();
-        $userService->updateUser($userId);
+        $userService->updateUser();
     }
 
 

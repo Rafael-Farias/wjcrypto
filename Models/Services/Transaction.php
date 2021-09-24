@@ -27,11 +27,19 @@ class Transaction
         $legalPersonAccountId = $accountNumberObject->getLegalPersonAccountId();
 
         if (is_numeric($naturalPersonAccountId) === true && is_null($legalPersonAccountId) === true) {
+            $this->accountService = new NaturalPersonAccountService();
             $this->account = $this->accountService->generateNaturalPersonAccountObject($accountNumber);
         }
 
         if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
+            $this->accountService = new legalPersonAccountService();
             $this->account = $this->accountService->generateLegalPersonAccountObject($accountNumber);
         }
+    }
+
+    public function getLoggedUserAccount(int $accountNumber): LegalPersonAccount|NaturalPersonAccount
+    {
+        $this->createAccountObject($accountNumber);
+        return $this->account;
     }
 }
