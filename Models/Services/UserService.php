@@ -6,7 +6,9 @@ use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\DNSCheckValidation;
 use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
 use Egulias\EmailValidator\Validation\RFCValidation;
+use Monolog\Logger;
 use WjCrypto\Helpers\JsonResponse;
+use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
@@ -19,6 +21,7 @@ class UserService
     use ResponseArray;
     use JsonResponse;
     use ValidationHelper;
+    use LogHelper;
 
     /**
      *
@@ -252,11 +255,14 @@ class UserService
         return $accountNumber->getAccountNumber();
     }
 
-    public function getLoggedUserAccountData()
+    public function getLoggedUserAccountData(): array
     {
         $accountNumber = $this->getLoggedUserAccountNumber();
         $transaction = new Transaction();
         $account = $transaction->getLoggedUserAccount($accountNumber);
+        $userId = $account->getAccountNumber()->getUserId();
+        $message = 'User ' . $userId . ' requested the account data';
+        $this->registerLog($message, 'resources', 'accountData', Logger::INFO);
         return $this->generateResponseArray($account->getAccountData(), 200);
     }
 
