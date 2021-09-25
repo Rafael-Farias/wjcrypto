@@ -205,7 +205,7 @@ class UserService
                 }
             }
         }
-        $errorMessage = 'Error! The email ' . $email . ' is not registered in the system.';
+        $errorMessage = 'Error! Invalid email or password.';
         $this->sendJsonMessage($errorMessage, 400);
         exit(0);
     }

@@ -119,7 +119,7 @@ class AuthMiddleware implements IMiddleware
             foreach ($exceptionsClassArray as $exceptionClass) {
                 $isInstanceOf = $exception instanceof $exceptionClass;
                 if ($isInstanceOf === true) {
-                    $this->sendJsonMessage('JWT ' . $exception->getMessage(), 401);
+                    $this->sendJsonMessage($exception->getMessage(), 401);
                 }
             }
             $this->sendJsonMessage('Error! Invalid token.', 401);
