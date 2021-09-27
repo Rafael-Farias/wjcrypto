@@ -7,6 +7,7 @@ use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\SanitizeString;
+use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Database\AddressDatabase;
@@ -24,6 +25,7 @@ class NaturalPersonAccountService
     use SanitizeString;
     use LogHelper;
     use JsonResponse;
+    use ValidationHelper;
 
     public function createAccount(): void
     {
@@ -96,6 +98,8 @@ class NaturalPersonAccountService
             'state'
         ];
 
+        $this->validateInput($requiredFields, $newAccountData);
+
         $authMiddleware = new AuthMiddleware();
         $userId = $authMiddleware->getUserId();
         $accountNumberDatabase = new AccountNumberDatabase();
@@ -105,24 +109,25 @@ class NaturalPersonAccountService
             $this->sendJsonMessage($message, 400);
         }
 
-        foreach ($requiredFields as $requiredField) {
-            $isRequiredFieldInRequest = array_key_exists($requiredField, $newAccountData);
-            if ($isRequiredFieldInRequest === false) {
-                $message = 'Error! The field ' . $requiredField . ' does not exists in the payload.';
-                $this->sendJsonMessage($message, 400);
-            }
-        }
+        $cpfRegex = '/^[0-9]{3}.[0-9]{3}.[0-9]{3}-[0-9]{2}$/';
+        $matches = [];
 
-        foreach ($newAccountData as $key => $field) {
-            if (empty($field)) {
-                $message = 'Error! The field ' . $key . ' is empty.';
-                $this->sendJsonMessage($message, 400);
-            }
+        $pregMatchResult = preg_match($cpfRegex, $newAccountData['cpf'], $matches[]);
+        if ($pregMatchResult !== 1) {
+            $message = 'Error! Invalid CPF format. Please enter a CPF with the following pattern: xxx.xxx.xxx-xx';
+            $this->sendJsonMessage($message, 400);
         }
 
         $cpfValidator = new CPF($newAccountData['cpf']);
         if ($cpfValidator->isValid() === false) {
             $message = 'Error! Please enter a valid CPF.';
+            $this->sendJsonMessage($message, 400);
+        }
+
+        $naturalPersonDatabase = new NaturalPersonAccountDatabase();
+        $selectResult = $naturalPersonDatabase->selectByCpf($newAccountData['cpf']);
+        if ($selectResult !== false){
+            $message = 'Error! Another user already uses this CPF.';
             $this->sendJsonMessage($message, 400);
         }
 

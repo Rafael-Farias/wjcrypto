@@ -8,6 +8,7 @@ use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\SanitizeString;
+use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Database\AddressDatabase;
@@ -24,6 +25,7 @@ class legalPersonAccountService
     use SanitizeString;
     use LogHelper;
     use JsonResponse;
+    use ValidationHelper;
 
 
     public function createAccount()
@@ -96,6 +98,8 @@ class legalPersonAccountService
             'state'
         ];
 
+        $this->validateInput($requiredFields, $newAccountData);
+
         $authMiddleware = new AuthMiddleware();
         $userId = $authMiddleware->getUserId();
         $accountNumberDatabase = new AccountNumberDatabase();
@@ -105,24 +109,25 @@ class legalPersonAccountService
             $this->sendJsonMessage($message, 400);
         }
 
-        foreach ($requiredFields as $requiredField) {
-            $isRequiredFieldInRequest = array_key_exists($requiredField, $newAccountData);
-            if ($isRequiredFieldInRequest === false) {
-                $message = 'Error! The field ' . $requiredField . ' does not exists in the payload.';
-                $this->sendJsonMessage($message, 400);
-            }
-        }
+        $cnpjRegex = '/^[0-9]{2}.[0-9]{3}.[0-9]{3}\/[0-9]{4}-[0-9]{2}$/';
+        $matches = [];
 
-        foreach ($newAccountData as $key => $field) {
-            if (empty($field)) {
-                $message = 'Error! The field ' . $key . ' is empty.';
-                $this->sendJsonMessage($message, 400);
-            }
+        $pregMatchResult = preg_match($cnpjRegex, $newAccountData['cnpj'], $matches[]);
+        if ($pregMatchResult !== 1) {
+            $message = 'Error! Invalid CNPJ format. Please enter a CNPJ with the following pattern: xx.xxx.xxx/xxxx-xx';
+            $this->sendJsonMessage($message, 400);
         }
 
         $cnpjValidator = new CNPJ($newAccountData['cnpj']);
         if ($cnpjValidator->isValid() === false) {
             $message = 'Error! Please enter a valid CNPJ.';
+            $this->sendJsonMessage($message, 400);
+        }
+
+        $legalPersonAccountDatabase = new LegalPersonAccountDatabase();
+        $selectResult = $legalPersonAccountDatabase->selectByCnpj($newAccountData['cnpj']);
+        if ($selectResult !== false) {
+            $message = 'Error! Another user already uses this CNPJ.';
             $this->sendJsonMessage($message, 400);
         }
 
@@ -257,7 +262,6 @@ class legalPersonAccountService
         $state = $stateDatabase->selectById($city->getStateId());
         if ($state === false) {
             $this->sendJsonMessage('Error! State attached to the city not found.', 400);
-
         }
         $legalPersonAccount->setState($state);
 

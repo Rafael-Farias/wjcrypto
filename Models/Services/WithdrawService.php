@@ -62,7 +62,7 @@ class WithdrawService extends Transaction
      */
     private function makeTheWithdraw(Money $withdrawValue): void
     {
-        $accountId = $this->account->getAccountNumber()->getId();
+        $accountId = $this->account->getId();
         $accountBalance = $this->account->getBalance();
         $newBalance = $accountBalance->subtract($withdrawValue);
 

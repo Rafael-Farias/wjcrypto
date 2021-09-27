@@ -60,7 +60,7 @@ trait ValidationHelper
         $moneyRegex = '/^[0-9]{1,3}(\.[0-9]{3})*(,[0-9]{2})$/';
         $regexResult = preg_match($moneyRegex, $value);
         if ($regexResult === 0) {
-            $message = 'Error! The field transferValue has a invalid money format. Use the following format: xxx.xxx,xx';
+            $message = 'Error! You have inputed an invalid money format. Use the following format: xxx.xxx,xx';
             $this->sendJsonMessage($message, 400);
         }
     }

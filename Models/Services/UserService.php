@@ -195,7 +195,7 @@ class UserService
         $userDatabase = new UserDatabase();
         $usersArray = $userDatabase->selectAll();
         if ($usersArray === false) {
-            $this->sendJsonMessage('There is no user registered.', 200);
+            $this->sendJsonMessage('There is no user registered with these credentials.', 401);
         }
         foreach ($usersArray as $user) {
             if ($user->getEmail() === $email) {
