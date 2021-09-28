@@ -22,11 +22,18 @@ class DepositService extends Transaction
         $inputedValues = input()->all();
         $this->validateDepositData($inputedValues);
 
-        $this->createAccountObject($inputedValues['accountNumber']);
+        $userService = new UserService();
+        $loggedUserAccountNumber = $userService->getLoggedUserAccountNumber();
+        $this->createAccountObject($loggedUserAccountNumber);
 
         $depositValue = $this->convertStringToMoney($inputedValues['depositValue']);
 
         $this->makeTheDeposit($depositValue);
+
+        $message = 'Deposit to the account ' . $this->account->getAccountNumber()->getAccountNumber() . ' failed.' .
+            '. The account balance is: ' . $this->account->getBalance()->getAmount() .
+            ' the deposit value was: ' . $depositValue->getAmount() . '.';
+        $this->registerLog($message, 'transaction', 'deposit', Logger::INFO);
 
         $this->sendJsonMessage('An error occurred.', 400);
     }
@@ -38,13 +45,11 @@ class DepositService extends Transaction
     private function validateDepositData(array $inputedValues): void
     {
         $requiredFields = [
-            'accountNumber',
             'depositValue'
         ];
 
         $this->validateInput($requiredFields, $inputedValues);
         $this->validateMoneyFormat($inputedValues['depositValue']);
-        $this->validateAccountNumber($inputedValues['accountNumber']);
     }
 
     /**
