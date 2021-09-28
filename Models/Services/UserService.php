@@ -14,6 +14,8 @@ use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
 use WjCrypto\Models\Database\AccountNumberDatabase;
 use WjCrypto\Models\Database\UserDatabase;
+use WjCrypto\Models\Entities\LegalPersonAccount;
+use WjCrypto\Models\Entities\NaturalPersonAccount;
 use WjCrypto\Models\Entities\User;
 
 class UserService
@@ -23,9 +25,6 @@ class UserService
     use ValidationHelper;
     use LogHelper;
 
-    /**
-     *
-     */
     public function createUser(): void
     {
         $newUserData = input()->all();
@@ -160,7 +159,6 @@ class UserService
         $this->sendJsonMessage('User deleted successfully!', 200);
     }
 
-
     public function updateUser(): void
     {
         $authMiddleware = new AuthMiddleware();
@@ -255,14 +253,41 @@ class UserService
         return $accountNumber->getAccountNumber();
     }
 
+    /**
+     * @return array
+     */
     public function getLoggedUserAccountData(): array
     {
         $accountNumber = $this->getLoggedUserAccountNumber();
-        $transaction = new Transaction();
-        $account = $transaction->getLoggedUserAccount($accountNumber);
+        $account = $this->getLoggedUserAccount($accountNumber);
         $userId = $account->getAccountNumber()->getUserId();
         $message = 'User ' . $userId . ' requested the account data';
         $this->registerLog($message, 'resources', 'accountData', Logger::INFO);
         return $this->generateResponseArray($account->getAccountData(), 200);
+    }
+
+    /**
+     * @param int $accountNumber
+     * @return LegalPersonAccount|NaturalPersonAccount|null
+     */
+    private function getLoggedUserAccount(int $accountNumber): LegalPersonAccount|NaturalPersonAccount|null
+    {
+        $this->validateAccountNumber($accountNumber);
+        $accountNumberDatabase = new AccountNumberDatabase();
+        $accountNumberObject = $accountNumberDatabase->selectByAccountNumber($accountNumber);
+
+        $naturalPersonAccountId = $accountNumberObject->getNaturalPersonAccountId();
+        $legalPersonAccountId = $accountNumberObject->getLegalPersonAccountId();
+
+        if (is_numeric($naturalPersonAccountId) === true && is_null($legalPersonAccountId) === true) {
+            $accountService = new NaturalPersonAccountService();
+            return $accountService->generateNaturalPersonAccountObject($accountNumber);
+        }
+
+        if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
+            $accountService = new LegalPersonAccountService();
+            return $accountService->generateLegalPersonAccountObject($accountNumber);
+        }
+        return null;
     }
 }

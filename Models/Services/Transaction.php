@@ -36,10 +36,4 @@ class Transaction
             $this->account = $this->accountService->generateLegalPersonAccountObject($accountNumber);
         }
     }
-
-    public function getLoggedUserAccount(int $accountNumber): LegalPersonAccount|NaturalPersonAccount
-    {
-        $this->createAccountObject($accountNumber);
-        return $this->account;
-    }
 }
