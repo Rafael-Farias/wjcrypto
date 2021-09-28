@@ -4,17 +4,16 @@ namespace WjCrypto\Models\Database;
 
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\AccountNumber;
 
 class AccountNumberDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
     private PDO $connection;
@@ -39,7 +38,10 @@ class AccountNumberDatabase extends Database
     ): bool {
         $encryptedAccountNumber = $this->encrypt($accountNumber);
         try {
-            $sqlQuery = "INSERT INTO accounts_number (`user_id`, `account_number`, `legal_person_account_id`, `natural_person_account_id`) VALUES (:user_id, :account_number, :legal_person_account_id, :natural_person_account_id);";
+            $sqlQuery = "INSERT INTO accounts_number " .
+                " (`user_id`, `account_number`, `legal_person_account_id`, `natural_person_account_id`) " .
+                "VALUES" .
+                "(:user_id, :account_number, :legal_person_account_id, :natural_person_account_id);";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':user_id', $userId);
             $statement->bindParam(':account_number', $encryptedAccountNumber);
@@ -47,9 +49,9 @@ class AccountNumberDatabase extends Database
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\insert: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\insert: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -80,10 +82,15 @@ class AccountNumberDatabase extends Database
                 $resultArray[] = $accountNumber;
             }
             return $resultArray;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectAll: ' . $exception->getMessage(
-                );
-            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectAll: ' .
+                $exception->getMessage();
+            $this->registerLog(
+                $message,
+                'database',
+                'AccountNumberDatabase',
+                Logger::ERROR
+            );
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
@@ -111,10 +118,15 @@ class AccountNumberDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByAccountNumber: ' . $exception->getMessage(
-                );
-            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByAccountNumber: ' .
+                $exception->getMessage();
+            $this->registerLog(
+                $message,
+                'database',
+                'AccountNumberDatabase',
+                Logger::ERROR
+            );
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
@@ -141,10 +153,15 @@ class AccountNumberDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAccountNumberObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByUserId: ' . $exception->getMessage(
-                );
-            $this->registerLog($message, 'database', 'AccountNumberDatabase', Logger::ERROR);
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AccountNumberDatabase\selectByUserId: ' .
+                $exception->getMessage();
+            $this->registerLog(
+                $message,
+                'database',
+                'AccountNumberDatabase',
+                Logger::ERROR
+            );
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500

@@ -11,7 +11,7 @@ class Transaction
 {
     use ValidationHelper;
 
-    protected NaturalPersonAccountService|legalPersonAccountService $accountService;
+    protected NaturalPersonAccountService|LegalPersonAccountService $accountService;
     protected NaturalPersonAccount|LegalPersonAccount $account;
 
     /**
@@ -32,7 +32,7 @@ class Transaction
         }
 
         if (is_numeric($legalPersonAccountId) === true && is_null($naturalPersonAccountId) === true) {
-            $this->accountService = new legalPersonAccountService();
+            $this->accountService = new LegalPersonAccountService();
             $this->account = $this->accountService->generateLegalPersonAccountObject($accountNumber);
         }
     }

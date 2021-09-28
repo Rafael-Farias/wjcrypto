@@ -8,7 +8,8 @@ use WjCrypto\Controllers\UsersController;
 use WjCrypto\Middlewares\AuthMiddleware;
 
 /**
- *  This route will encrypt and persist the states and cities from Brazil in the database. Use this route only once, when is needed to persist all the states and cities again or in a fresh install.
+ *  This route will encrypt and persist the states and cities from Brazil in the database. Use this route only once,
+ *  when is needed to persist all the states and cities again or in a fresh install.
  */
 
 SimpleRouter::get('/admin/set-states-and-cities', [ConfigureCitiesAndStates::class, 'persistCitiesAndStates']);
@@ -21,13 +22,11 @@ SimpleRouter::group(['middleware' => AuthMiddleware::class], function () {
     SimpleRouter::get('/user/{id}', [UsersController::class, 'show']);
     SimpleRouter::delete('/user/{id}', [UsersController::class, 'delete']);
     SimpleRouter::put('/user', [UsersController::class, 'update']);
+
     SimpleRouter::get('/account', [AccountController::class, 'getAccountData']);
-    SimpleRouter::group(['prefix' => '/natural-person'], function () {
-        SimpleRouter::post('/create', [AccountController::class, 'createNaturalPersonAccount']);
-    });
-    SimpleRouter::group(['prefix' => '/legal-person'], function () {
-        SimpleRouter::post('/create', [AccountController::class, 'createLegalPersonAccount']);
-    });
+    SimpleRouter::post('/natural-person/create', [AccountController::class, 'createNaturalPersonAccount']);
+    SimpleRouter::post('/legal-person/create', [AccountController::class, 'createLegalPersonAccount']);
+
     SimpleRouter::group(['prefix' => '/transactions'], function () {
         SimpleRouter::post('/deposit', [TransactionsController::class, 'deposit']);
         SimpleRouter::post('/withdraw', [TransactionsController::class, 'withdraw']);

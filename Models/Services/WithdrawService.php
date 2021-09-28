@@ -4,6 +4,7 @@ namespace WjCrypto\Models\Services;
 
 use Money\Money;
 use Monolog\Logger;
+use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
 use WjCrypto\Helpers\ValidationHelper;
@@ -13,6 +14,7 @@ class WithdrawService extends Transaction
     use ValidationHelper;
     use LogHelper;
     use MoneyHelper;
+    use JsonResponse;
 
     public function withdrawFromAccount()
     {

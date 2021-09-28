@@ -89,5 +89,4 @@ class State
     {
         $this->update_timestamp = $update_timestamp;
     }
-
 }

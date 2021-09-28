@@ -5,9 +5,9 @@ namespace WjCrypto\Helpers;
 trait CryptografyHelper
 {
 
-    private $key = 'Qyk3y_sDb%W+?Pbu#V?uu%d8H5Wj?fA=@YyXY7jE+_X^CFzx9KVbmXYj^uP#%gV+';
-    private $cipher = "aes-256-gcm";
-    private $iv = '3EYeuc9qoUZBgXUy';
+    private string $key = 'Qyk3y_sDb%W+?Pbu#V?uu%d8H5Wj?fA=@YyXY7jE+_X^CFzx9KVbmXYj^uP#%gV+';
+    private string $cipher = "aes-256-gcm";
+    private string $iv = '3EYeuc9qoUZBgXUy';
 
     /**
      * @param string $dataToEncrypt
@@ -58,5 +58,4 @@ trait CryptografyHelper
     {
         return substr($encryptedDataWithTag, 24);
     }
-
 }

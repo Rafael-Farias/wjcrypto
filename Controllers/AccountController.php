@@ -3,7 +3,7 @@
 namespace WjCrypto\Controllers;
 
 use WjCrypto\Helpers\JsonResponse;
-use WjCrypto\Models\Services\legalPersonAccountService;
+use WjCrypto\Models\Services\LegalPersonAccountService;
 use WjCrypto\Models\Services\NaturalPersonAccountService;
 use WjCrypto\Models\Services\UserService;
 
@@ -19,7 +19,7 @@ class AccountController
 
     public function createLegalPersonAccount()
     {
-        $legalPersonService = new legalPersonAccountService();
+        $legalPersonService = new LegalPersonAccountService();
         $legalPersonService->createAccount();
     }
 

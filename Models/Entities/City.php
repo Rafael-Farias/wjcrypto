@@ -89,5 +89,4 @@ class City
     {
         $this->update_timestamp = $update_timestamp;
     }
-
 }

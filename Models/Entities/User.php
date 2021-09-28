@@ -102,5 +102,4 @@ class User
             'update_timestamp' => $this->update_timestamp
         ];
     }
-
 }

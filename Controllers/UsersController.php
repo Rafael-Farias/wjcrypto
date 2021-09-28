@@ -40,6 +40,5 @@ class UsersController
         $userService = new UserService();
         $userService->updateUser();
     }
-
-
 }
+

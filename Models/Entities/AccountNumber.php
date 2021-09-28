@@ -7,8 +7,8 @@ class AccountNumber
     private int $id;
     private int $user_id;
     private string $account_number;
-    private $natural_person_account_id;
-    private $legal_person_account_id;
+    private int|null $natural_person_account_id;
+    private int|null $legal_person_account_id;
     private string $creation_timestamp;
     private string $update_timestamp;
 
@@ -61,33 +61,33 @@ class AccountNumber
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
-    public function getNaturalPersonAccountId()
+    public function getNaturalPersonAccountId(): int|null
     {
         return $this->natural_person_account_id;
     }
 
     /**
-     * @param mixed $natural_person_account_id
+     * @param int|null $natural_person_account_id
      */
-    public function setNaturalPersonAccountId($natural_person_account_id): void
+    public function setNaturalPersonAccountId(int|null $natural_person_account_id): void
     {
         $this->natural_person_account_id = $natural_person_account_id;
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
-    public function getLegalPersonAccountId()
+    public function getLegalPersonAccountId(): int|null
     {
         return $this->legal_person_account_id;
     }
 
     /**
-     * @param mixed $legal_person_account_id
+     * @param int|null $legal_person_account_id
      */
-    public function setLegalPersonAccountId($legal_person_account_id): void
+    public function setLegalPersonAccountId(int|null $legal_person_account_id): void
     {
         $this->legal_person_account_id = $legal_person_account_id;
     }

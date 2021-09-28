@@ -89,5 +89,4 @@ class AddressService
         $addressDatabase = new AddressDatabase();
         $addressDatabase->delete($addressId);
     }
-
 }

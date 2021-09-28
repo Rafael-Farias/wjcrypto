@@ -4,7 +4,6 @@ namespace WjCrypto\Models\Services;
 
 use Money\Money;
 use Monolog\Logger;
-use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
 use WjCrypto\Helpers\ValidationHelper;
@@ -12,7 +11,6 @@ use WjCrypto\Helpers\ValidationHelper;
 class DepositService extends Transaction
 {
     use LogHelper;
-    use JsonResponse;
     use ValidationHelper;
     use MoneyHelper;
 

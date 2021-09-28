@@ -3,10 +3,10 @@
 namespace WjCrypto\Models\Services;
 
 use Bissolli\ValidadorCpfCnpj\CNPJ;
+use DateTime;
 use Thiagocfn\InscricaoEstadual\Util\Validador;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Helpers\SanitizeString;
 use WjCrypto\Helpers\ValidationHelper;
 use WjCrypto\Middlewares\AuthMiddleware;
@@ -16,12 +16,10 @@ use WjCrypto\Models\Database\CityDatabase;
 use WjCrypto\Models\Database\ClientContactDatabase;
 use WjCrypto\Models\Database\LegalPersonAccountDatabase;
 use WjCrypto\Models\Database\StateDatabase;
-use WjCrypto\Models\Entities\AccountNumber;
 use WjCrypto\Models\Entities\LegalPersonAccount;
 
-class legalPersonAccountService
+class LegalPersonAccountService
 {
-    use ResponseArray;
     use SanitizeString;
     use LogHelper;
     use JsonResponse;
@@ -48,7 +46,7 @@ class legalPersonAccountService
         }
         $address = $addressService->selectAddressByAddressName($newAccountData['address']);
 
-        $foundationDate = \DateTime::createFromFormat('d/m/Y', $newAccountData['foundationDate']);
+        $foundationDate = DateTime::createFromFormat('d/m/Y', $newAccountData['foundationDate']);
         $legalPersonAccountDatabase = new legalPersonAccountDatabase();
         $legalPersonAccountDatabase->insert(
             $newAccountData['name'],
@@ -99,15 +97,7 @@ class legalPersonAccountService
         ];
 
         $this->validateInput($requiredFields, $newAccountData);
-
-        $authMiddleware = new AuthMiddleware();
-        $userId = $authMiddleware->getUserId();
-        $accountNumberDatabase = new AccountNumberDatabase();
-        $selectResult = $accountNumberDatabase->selectByUserId($userId);
-        if ($selectResult instanceof AccountNumber) {
-            $message = 'The logged user already has an account.';
-            $this->sendJsonMessage($message, 400);
-        }
+        $this->validateAccountData($newAccountData);
 
         $cnpjRegex = '/^[0-9]{2}.[0-9]{3}.[0-9]{3}\/[0-9]{4}-[0-9]{2}$/';
         $matches = [];
@@ -136,41 +126,14 @@ class legalPersonAccountService
 
         $pregMatchResult = preg_match($dateRegex, $newAccountData['foundationDate'], $matches[]);
         if ($pregMatchResult !== 1) {
-            $message = 'Error! Invalid foundation date format. Please enter a date with the following pattern: DD/MM/YYYY';
+            $message =
+                'Error! Invalid foundation date format. Please enter a date with the following pattern: DD/MM/YYYY';
             $this->sendJsonMessage($message, 400);
         }
 
         $checkDateResult = checkdate($matches[0][2], $matches[0][1], $matches[0][3]);
         if ($checkDateResult === false) {
             $message = 'Error! Invalid date. Please enter a valid date.';
-            $this->sendJsonMessage($message, 400);
-        }
-
-        $telephoneRegex = '/^(\([0-9]{2}\)) (9?[0-9]{4})-([0-9]{4})$/';
-        foreach ($newAccountData['contacts'] as $contact) {
-            $pregMatchResult = preg_match($telephoneRegex, $contact);
-            if ($pregMatchResult !== 1) {
-                $message = 'Error! Invalid contact format. Please enter a telephone number with one of the following patterns: (xx) xxxxx-xxxx or (xx) xxxx-xxxx';
-                $this->sendJsonMessage($message, 400);
-            }
-        }
-
-        $newAccountData['state'] = $this->sanitizeString($newAccountData['state']);
-        $stateDatabase = new StateDatabase();
-        $selectAllStatesResult = $stateDatabase->selectAll();
-        if ($selectAllStatesResult === false) {
-            $message = 'Error! Could not find the specified State in the database. Confirm if the State name is correct.';
-            $this->sendJsonMessage($message, 400);
-        }
-        foreach ($selectAllStatesResult as $state) {
-            $sanitizedStateName = $this->sanitizeString($state->getName());
-            if ($sanitizedStateName === $newAccountData['state']) {
-                $newAccountData['stateInitials'] = $state->getInitials();
-                $newAccountData['stateId'] = $state->getId();
-            }
-        }
-        if (array_key_exists('stateInitials', $newAccountData) === false) {
-            $message = 'Error! Invalid state. Please enter a valid State.';
             $this->sendJsonMessage($message, 400);
         }
 
@@ -181,26 +144,6 @@ class legalPersonAccountService
 
         if ($companyRegisterValidationResult === false) {
             $message = 'Error! Invalid company register. Please enter a valid company register.';
-            $this->sendJsonMessage($message, 400);
-        }
-
-        $newAccountData['city'] = $this->sanitizeString($newAccountData['city']);
-        $cityDatabase = new CityDatabase();
-        $citiesByStateId = $cityDatabase->selectAllByState($newAccountData['stateId']);
-
-        if ($citiesByStateId === false) {
-            $message = 'Error! Could not find the specified City in the database. Confirm if the City name is correct.';
-            $this->sendJsonMessage($message, 400);
-        }
-        $foundCity = false;
-        foreach ($citiesByStateId as $city) {
-            $sanitizedCityName = $this->sanitizeString($city->getName());
-            if ($sanitizedCityName === $newAccountData['city']) {
-                $foundCity = true;
-            }
-        }
-        if ($foundCity === false) {
-            $message = 'Error! Invalid city. Please enter a valid city.';
             $this->sendJsonMessage($message, 400);
         }
     }

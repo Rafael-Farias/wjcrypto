@@ -4,17 +4,16 @@ namespace WjCrypto\Models\Database;
 
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\City;
 
 class CityDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
     private PDO $connection;
@@ -34,19 +33,19 @@ class CityDatabase extends Database
         $encryptedName = $this->encrypt($name);
         $encryptedStateInitials = $this->encrypt($stateInitials);
         try {
-            $sqlQuery = "INSERT INTO cities (`name`, `state_id`) VALUES (:name, (SELECT `id` FROM states WHERE initials=:state_initials));";
+            $sqlQuery = "INSERT INTO cities (`name`, `state_id`)" .
+                "VALUES (:name, (SELECT `id` FROM states WHERE initials=:state_initials));";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':state_initials', $encryptedStateInitials);
             $statement->execute();
-        } catch (\PDOException $exception) {
+        } catch (PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\insert: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
     }
 
@@ -73,15 +72,14 @@ class CityDatabase extends Database
                 $resultArray[] = $city;
             }
             return $resultArray;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectAllByState: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectAllByState: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
         return false;
     }
@@ -104,9 +102,9 @@ class CityDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createCityObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectById: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\CityDatabase\selectById: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'CityDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',

@@ -4,17 +4,16 @@ namespace WjCrypto\Models\Database;
 
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\Address;
 
 class AddressDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
     private PDO $connection;
@@ -35,16 +34,17 @@ class AddressDatabase extends Database
         $encryptedAddress = $this->encrypt($address);
         $encryptedAddressComplement = $this->encrypt($addressComplement);
         try {
-            $sqlQuery = "INSERT INTO addresses (`address`, `complement`, `city_id`) VALUES (:address, :complement, :city_id);";
+            $sqlQuery = "INSERT INTO addresses (`address`, `complement`, `city_id`)" .
+                "VALUES (:address, :complement, :city_id);";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':address', $encryptedAddress);
             $statement->bindParam(':complement', $encryptedAddressComplement);
             $statement->bindParam(':city_id', $cityId, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\insert: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
         }
         return false;
@@ -69,9 +69,9 @@ class AddressDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAddressObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectByAddress: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectByAddress: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
         }
         return false;
@@ -95,9 +95,9 @@ class AddressDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createAddressObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectById: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\selectById: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -117,14 +117,14 @@ class AddressDatabase extends Database
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
             $statement->execute();
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
-            $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
-            $return = $this->generateResponseArray(
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\AddressDatabase\delete: ' .
+                $exception->getMessage();
+            $this->registerLog($message, 'database', 'AddressDatabase', Logger::ERROR);
+            $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
                 500
             );
-            $this->sendJsonResponse($return['message'], $return['httpResponseCode']);
         }
     }
 

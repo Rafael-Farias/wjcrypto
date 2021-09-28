@@ -4,17 +4,16 @@ namespace WjCrypto\Models\Database;
 
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\ClientContact;
 
 class ClientContactDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
     private PDO $connection;
@@ -37,16 +36,18 @@ class ClientContactDatabase extends Database
     ): bool {
         $encryptedTelephone = $this->encrypt($telephone);
         try {
-            $sqlQuery = "INSERT INTO clients_contacts (`legal_person_account_id`, `natural_person_account_id`, `telephone`) VALUES (:legal_person_account_id, :natural_person_account_id, :telephone);";
+            $sqlQuery = "INSERT INTO clients_contacts " .
+                "(`legal_person_account_id`, `natural_person_account_id`, `telephone`)" .
+                "VALUES(:legal_person_account_id, :natural_person_account_id, :telephone);";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':telephone', $encryptedTelephone);
             $statement->bindParam(':legal_person_account_id', $legalPersonAccountId, PDO::PARAM_INT);
             $statement->bindParam(':natural_person_account_id', $naturalPersonAccountId, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\ClientContactDatabase\insert: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\ClientContactDatabase\insert: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'ClientContactDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -81,5 +82,4 @@ class ClientContactDatabase extends Database
         $accountNumber->setUpdateTimestamp($associativeArray['update_timestamp']);
         return $accountNumber;
     }
-
 }

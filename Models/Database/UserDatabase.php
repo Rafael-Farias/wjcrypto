@@ -4,17 +4,16 @@ namespace WjCrypto\Models\Database;
 
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\User;
 
 class UserDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
 
@@ -41,7 +40,7 @@ class UserDatabase extends Database
             $statement->bindParam(':password', $encryptedPassword);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
+        } catch (PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\insert: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
             $this->sendJsonMessage(
@@ -73,9 +72,9 @@ class UserDatabase extends Database
                 $resultArray[] = $user;
             }
             return $resultArray;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectAll: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -103,9 +102,9 @@ class UserDatabase extends Database
             }
             $decryptedArray = $this->decryptArray($row);
             return $this->createUserObject($decryptedArray);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\selectById: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -127,7 +126,7 @@ class UserDatabase extends Database
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
+        } catch (PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\delete: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
             $this->sendJsonMessage(
@@ -156,7 +155,7 @@ class UserDatabase extends Database
             $statement->bindParam(':id', $userId, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
+        } catch (PDOException $exception) {
             $message = 'PDO error on method WjCrypto\Models\Database\UserDatabase\update: ' . $exception->getMessage();
             $this->registerLog($message, 'database', 'UserDatabase', Logger::ERROR);
             $this->sendJsonMessage(
@@ -196,5 +195,4 @@ class UserDatabase extends Database
         $user->setUpdateTimestamp($associativeArray['update_timestamp']);
         return $user;
     }
-
 }

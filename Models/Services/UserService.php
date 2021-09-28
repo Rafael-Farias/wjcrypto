@@ -265,5 +265,4 @@ class UserService
         $this->registerLog($message, 'resources', 'accountData', Logger::INFO);
         return $this->generateResponseArray($account->getAccountData(), 200);
     }
-
 }

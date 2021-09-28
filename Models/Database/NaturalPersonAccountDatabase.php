@@ -5,17 +5,16 @@ namespace WjCrypto\Models\Database;
 use DI\Container;
 use Monolog\Logger;
 use PDO;
+use PDOException;
 use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
-use WjCrypto\Helpers\ResponseArray;
 use WjCrypto\Models\Entities\NaturalPersonAccount;
 
 class NaturalPersonAccountDatabase extends Database
 {
     use CryptografyHelper;
     use LogHelper;
-    use ResponseArray;
     use JsonResponse;
 
     private PDO $connection;
@@ -48,7 +47,9 @@ class NaturalPersonAccountDatabase extends Database
         $encryptedBirthDate = $this->encrypt($birthDate);
         $encryptedBalance = $this->encrypt($balance);
         try {
-            $sqlQuery = "INSERT INTO natural_person_accounts (`name`, `cpf`, `rg`, `birth_date`, `balance`, `address_id`) VALUES (:name, :cpf, :rg, :birth_date, :balance, :address_id);";
+            $sqlQuery = "INSERT INTO natural_person_accounts " .
+                "(`name`, `cpf`, `rg`, `birth_date`, `balance`, `address_id`) " .
+                "VALUES (:name, :cpf, :rg, :birth_date, :balance, :address_id);";
             $statement = $this->connection->prepare($sqlQuery);
             $statement->bindParam(':name', $encryptedName);
             $statement->bindParam(':cpf', $encryptedCpf);
@@ -58,9 +59,9 @@ class NaturalPersonAccountDatabase extends Database
             $statement->bindParam(':address_id', $addressId);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\insert: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\insert: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -88,9 +89,9 @@ class NaturalPersonAccountDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectById: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectById: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -119,9 +120,9 @@ class NaturalPersonAccountDatabase extends Database
             }
             $decryptedRow = $this->decryptRow($row);
             return $this->createLegalPersonAccountObject($decryptedRow);
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectByCpf: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\selectByCpf: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -146,9 +147,10 @@ class NaturalPersonAccountDatabase extends Database
             $statement->bindParam(':id', $id, PDO::PARAM_INT);
             $statement->execute();
             return true;
-        } catch (\PDOException $exception) {
-            $message = 'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\updateAccountBalance: ' . $exception->getMessage(
-                );
+        } catch (PDOException $exception) {
+            $message =
+                'PDO error on method WjCrypto\Models\Database\NaturalPersonAccountDatabase\updateAccountBalance: ' .
+                $exception->getMessage();
             $this->registerLog($message, 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
             $this->sendJsonMessage(
                 'An error occurred while processing your request. Contact the system administrator.',
@@ -178,17 +180,21 @@ class NaturalPersonAccountDatabase extends Database
      */
     private function createLegalPersonAccountObject(array $associativeArray): NaturalPersonAccount
     {
-        $container = new Container();
-        $legalPersonAccount = $container->get(NaturalPersonAccount::class);
-        $legalPersonAccount->setId($associativeArray['id']);
-        $legalPersonAccount->setName($associativeArray['name']);
-        $legalPersonAccount->setCpf($associativeArray['cpf']);
-        $legalPersonAccount->setRg($associativeArray['rg']);
-        $legalPersonAccount->setBirthDate($associativeArray['birth_date']);
-        $legalPersonAccount->setBalance($associativeArray['balance']);
-        $legalPersonAccount->setAddressId($associativeArray['address_id']);
-        $legalPersonAccount->setCreationTimestamp($associativeArray['creation_timestamp']);
-        $legalPersonAccount->setUpdateTimestamp($associativeArray['update_timestamp']);
+        try {
+            $container = new Container();
+            $legalPersonAccount = $container->get(NaturalPersonAccount::class);
+            $legalPersonAccount->setId($associativeArray['id']);
+            $legalPersonAccount->setName($associativeArray['name']);
+            $legalPersonAccount->setCpf($associativeArray['cpf']);
+            $legalPersonAccount->setRg($associativeArray['rg']);
+            $legalPersonAccount->setBirthDate($associativeArray['birth_date']);
+            $legalPersonAccount->setBalance($associativeArray['balance']);
+            $legalPersonAccount->setAddressId($associativeArray['address_id']);
+            $legalPersonAccount->setCreationTimestamp($associativeArray['creation_timestamp']);
+            $legalPersonAccount->setUpdateTimestamp($associativeArray['update_timestamp']);
+        } catch (\Exception $exception) {
+            $this->registerLog($exception->getMessage(), 'database', 'NaturalPersonAccountDatabase', Logger::ERROR);
+        }
         return $legalPersonAccount;
     }
 }

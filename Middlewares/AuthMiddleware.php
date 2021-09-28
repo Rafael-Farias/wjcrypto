@@ -20,8 +20,8 @@ class AuthMiddleware implements IMiddleware
     use JsonResponse;
     use LogHelper;
 
-    private $secretKey = 'ifvDVbqb8g0/Umxz2M2oz.bWa/s8n08gB8kL9qXq8OA5reIEzoRAK';
-    private $serverName = 'localhost';
+    private string $secretKey = 'ifvDVbqb8g0/Umxz2M2oz.bWa/s8n08gB8kL9qXq8OA5reIEzoRAK';
+    private string $serverName = 'localhost';
 
     /**
      * @param Request $request
@@ -108,7 +108,14 @@ class AuthMiddleware implements IMiddleware
     {
         try {
             $decodedJwt = JWT::decode($jwt, $this->secretKey, ['HS512']);
-        } catch (BeforeValidException | ExpiredException | SignatureInvalidException | \UnexpectedValueException | \InvalidArgumentException | \Exception $exception) {
+        } catch (
+            BeforeValidException |
+            ExpiredException |
+            SignatureInvalidException |
+            \UnexpectedValueException |
+            \InvalidArgumentException |
+            \Exception $exception
+        ) {
             $exceptionsClassArray = [
                 BeforeValidException::class,
                 ExpiredException::class,
@@ -147,9 +154,11 @@ class AuthMiddleware implements IMiddleware
         $token = $this->decodeJwt($jwt);
         $now = new DateTimeImmutable();
 
-        if ($token->iss !== $this->serverName ||
+        if (
+            $token->iss !== $this->serverName ||
             $token->nbf > $now->getTimestamp() ||
-            $token->exp < $now->getTimestamp()) {
+            $token->exp < $now->getTimestamp()
+        ) {
             response()->header('HTTP/1.1 401 Unauthorized');
             $this->sendJsonMessage('Error! Invalid Token.', 401);
         }
