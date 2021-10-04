@@ -25,7 +25,7 @@ trait LogHelper
     ) {
         $logger = new Logger($loggerName);
         $logger->pushHandler(new StreamHandler(__DIR__ . '/../Logs/' . $logFileName . '.log', $loggerLevel));
-        $logger->info($message, $contextArray);
+        $logger->addRecord($loggerLevel, $message, $contextArray);
     }
 
     /**
