@@ -4,6 +4,7 @@ namespace WjCrypto\Models\Services;
 
 use Money\Money;
 use Monolog\Logger;
+use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\JsonResponse;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
@@ -15,6 +16,7 @@ class TransferService extends Transaction
     use ValidationHelper;
     use MoneyHelper;
     use LogHelper;
+    use CryptografyHelper;
 
     /**
      *
@@ -22,6 +24,7 @@ class TransferService extends Transaction
     public function transfer(): void
     {
         $inputedValues = input()->all();
+        $inputedValues['accountNumber'] = $this->decrypt($inputedValues['accountNumber']);
         $this->validateTransferData($inputedValues);
         $valueToTransfer = $this->convertStringToMoney($inputedValues['transferValue']);
 
@@ -43,13 +46,20 @@ class TransferService extends Transaction
         $this->updateAccountBalance($targetAccountNewBalance);
 
         $message = 'Transfer made from account .' .
-            $loggedUserAccountNumber .
+            $this->encrypt($loggedUserAccountNumber) .
             ' to account ' .
-            $inputedValues['accountNumber'] .
+            $this->encrypt($inputedValues['accountNumber']) .
             ' . Transfer value = ' .
-            $valueToTransfer->getAmount() .
+            $this->getParsedBalance($valueToTransfer) .
             ' .';
-        $this->registerLog($message, 'transaction', 'transfer', Logger::INFO);
+        $transactionDataArray = [
+            'operation' => 'Transfer',
+            'date' => date('d/m/Y'),
+            'value' => $this->getParsedBalance($valueToTransfer),
+            'originAccount' => $this->encrypt($loggedUserAccountNumber),
+            'destinyAccount' => $this->encrypt($inputedValues['accountNumber'])
+        ];
+        $this->registerLog($message, 'transaction', 'transfer', Logger::INFO, $transactionDataArray);
 
         $this->sendJsonMessage('Transfer executed successfully!', 200);
     }
@@ -81,8 +91,8 @@ class TransferService extends Transaction
         if ($balance->lessThan($valueToTransfer)) {
             $message = 'Invalid operation. The account ' . $this->account->getAccountNumber()->getAccountNumber() .
                 ' does not have enough amount to make a withdraw.' .
-                '. The account balance is: ' . $balance->getAmount() .
-                ' the transfer value was: ' . $valueToTransfer->getAmount() . '.';
+                '. The account balance is: ' . $this->getParsedBalance($balance) .
+                ' the transfer value was: ' . $this->getParsedBalance($valueToTransfer) . '.';
             $this->registerLog($message, 'transaction', 'transfer', Logger::INFO);
 
             $message = 'Invalid operation. The account does not have enough amount to make this transfer.';

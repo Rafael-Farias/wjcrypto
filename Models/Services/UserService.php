@@ -263,7 +263,9 @@ class UserService
         $userId = $account->getAccountNumber()->getUserId();
         $message = 'User ' . $userId . ' requested the account data';
         $this->registerLog($message, 'resources', 'accountData', Logger::INFO);
-        return $this->generateResponseArray($account->getAccountData(), 200);
+        $responseData = $account->getAccountData();
+        $responseData['transactionLogs'] = $this->getAccountTransactionLogs((string)$accountNumber);
+        return $this->generateResponseArray($responseData, 200);
     }
 
     /**

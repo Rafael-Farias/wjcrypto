@@ -4,9 +4,12 @@ namespace WjCrypto\Models\Entities;
 
 use Money\Currency;
 use Money\Money;
+use WjCrypto\Helpers\CryptografyHelper;
 
 class LegalPersonAccount
 {
+    use CryptografyHelper;
+
     private int $id;
     private string $name;
     private string $cnpj;
@@ -263,7 +266,7 @@ class LegalPersonAccount
             'address' => $this->address->getAddress(),
             'city' => $this->city->getName(),
             'state' => $this->state->getName(),
-            'accountNumber' => $this->accountNumber->getAccountNumber()
+            'accountNumber' => $this->encrypt($this->accountNumber->getAccountNumber())
         ];
     }
 }

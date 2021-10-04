@@ -20,4 +20,17 @@ trait MoneyHelper
         $moneyParser = new IntlLocalizedDecimalParser($numberFormatter, $currencies);
         return $moneyParser->parse($value, new Currency('BRL'));
     }
+
+    /**
+     * @param Money $value
+     * @return string
+     */
+    public function getParsedBalance(Money $value): string
+    {
+        $balance = $value->getAmount();
+        $decimal = substr($balance, -2);
+        $integer = substr($balance, 0, -2);
+        $stringBalance = $integer . '.' . $decimal;
+        return number_format((float)$stringBalance, 2, ',', '.');
+    }
 }

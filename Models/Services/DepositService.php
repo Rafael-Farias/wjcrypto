@@ -4,6 +4,7 @@ namespace WjCrypto\Models\Services;
 
 use Money\Money;
 use Monolog\Logger;
+use WjCrypto\Helpers\CryptografyHelper;
 use WjCrypto\Helpers\LogHelper;
 use WjCrypto\Helpers\MoneyHelper;
 use WjCrypto\Helpers\ValidationHelper;
@@ -13,6 +14,7 @@ class DepositService extends Transaction
     use LogHelper;
     use ValidationHelper;
     use MoneyHelper;
+    use CryptografyHelper;
 
     /**
      * @return void
@@ -31,10 +33,9 @@ class DepositService extends Transaction
         $this->makeTheDeposit($depositValue);
 
         $message = 'Deposit to the account ' . $this->account->getAccountNumber()->getAccountNumber() . ' failed.' .
-            '. The account balance is: ' . $this->account->getBalance()->getAmount() .
-            ' the deposit value was: ' . $depositValue->getAmount() . '.';
+            '. The account balance is: ' . $this->getParsedBalance($this->account->getBalance()) .
+            ' the deposit value was: ' . $this->getParsedBalance($depositValue) . '.';
         $this->registerLog($message, 'transaction', 'deposit', Logger::INFO);
-
         $this->sendJsonMessage('An error occurred.', 400);
     }
 
@@ -63,9 +64,19 @@ class DepositService extends Transaction
         $this->accountService->updateBalance($newBalance->getAmount(), $this->account->getId());
 
         $accountNumber = $this->account->getAccountNumber()->getAccountNumber();
-        $message = 'Deposit made into the account: ' . $accountNumber . ' with value: ' . $depositValue->getAmount();
 
-        $this->registerLog($message, 'transaction', 'deposit', Logger::INFO);
+        $message = 'Deposit made into the account: ' . $accountNumber .
+            ' with value: ' . $this->getParsedBalance($depositValue);
+
+        $transactionDataArray = [
+            'operation' => 'Deposit',
+            'date' => date('d/m/Y'),
+            'value' => $this->getParsedBalance($depositValue),
+            'originAccount' => $this->encrypt($accountNumber),
+            'destinyAccount' => $this->encrypt($accountNumber)
+        ];
+
+        $this->registerLog($message, 'transaction', 'deposit', Logger::INFO, $transactionDataArray);
 
         $this->sendJsonMessage('Deposit was made successfully!', 200);
     }
