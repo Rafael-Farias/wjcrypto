@@ -12,7 +12,7 @@ use WjCrypto\Middlewares\AuthMiddleware;
  *  when is needed to persist all the states and cities again or in a fresh install.
  */
 
-SimpleRouter::get('/admin/set-states-and-cities', [ConfigureCitiesAndStates::class, 'persistCitiesAndStates']);
+SimpleRouter::post('/admin/set-states-and-cities', [ConfigureCitiesAndStates::class, 'persistCitiesAndStates']);
 
 
 SimpleRouter::post('/user', [UsersController::class, 'create']);

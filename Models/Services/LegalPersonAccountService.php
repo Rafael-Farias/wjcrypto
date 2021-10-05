@@ -137,6 +137,21 @@ class LegalPersonAccountService
             $this->sendJsonMessage($message, 400);
         }
 
+        $newAccountData['state'] = $this->sanitizeString($newAccountData['state']);
+        $stateDatabase = new StateDatabase();
+        $selectAllStatesResult = $stateDatabase->selectAll();
+        if ($selectAllStatesResult === false) {
+            $message =
+                'Error! Could not find the specified State in the database. Confirm if the State name is correct.';
+            $this->sendJsonMessage($message, 400);
+        }
+        foreach ($selectAllStatesResult as $state) {
+            $sanitizedStateName = $this->sanitizeString($state->getName());
+            if ($sanitizedStateName === $newAccountData['state']) {
+                $newAccountData['stateInitials'] = $state->getInitials();
+            }
+        }
+
         $companyRegisterValidationResult = Validador::check(
             $newAccountData['stateInitials'],
             $newAccountData['companyRegister']

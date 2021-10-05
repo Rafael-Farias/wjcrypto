@@ -60,7 +60,7 @@ CREATE TABLE wjcrypto.addresses
     `id`                 BIGINT UNSIGNED AUTO_INCREMENT,
     `address`            VARCHAR(255) NOT NULL,
     `complement`         VARCHAR(255),
-    `city_id`            BIGINT UNSIGNED,
+    `city_id`            BIGINT UNSIGNED NOT NULL,
     `creation_timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `update_timestamp`   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
